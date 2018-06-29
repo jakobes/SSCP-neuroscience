@@ -72,7 +72,7 @@ st1.amp = {squareAmp}
 st1.dur = {squareDur}
 """
 
-def do_stuff(icell, biophys_file, template_file, morphology_file):
+def do_stuff(icell, biophys_file, template_file, morphology_file, tstop=400):
     distalpoint = 620
     neuron_template = NEURON_TEMPLATE % (
         biophys_file,
@@ -110,7 +110,6 @@ def do_stuff(icell, biophys_file, template_file, morphology_file):
     BACdt = 5.0
 
     squareDur = 3800
-    tstop = 40
 
     Is = np.arange(16)*0.1
     spikfreqs = np.zeros_like(Is)
@@ -266,9 +265,9 @@ if __name__ == "__main__":
     biophys_file = "models/L5PCbiophys3{}.hoc".format("")   # Want to change this file
     template_file = "models/L5PCtemplate.hoc"
 
-    for icell in range(0, 2):
+    for icell in range(0, 1):   # (0, 2)
         morphology_file = "morphologies/cell{}.asc".format(icell + 1)
         picklelist = do_stuff(icell, biophys_file, template_file, morphology_file)
 
-# with open("results/control.sav", "wb") as outfile:
-#     pickle.dump(picklelist, outfile)
+    with open("results/control.sav", "wb") as outfile:
+        pickle.dump(picklelist, outfile)

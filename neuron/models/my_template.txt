@@ -42,8 +42,8 @@ proc biophys() {
   	gK_Tstbar_K_Tst = 0.0812 
   	gK_Pstbar_K_Pst = 0.00223 
   	gNap_Et2bar_Nap_Et2 = 0.00172 
-  	gNaTa_tbar_NaTa_t = 1.836000 
-  	gNaTa_tbar_NaTa_modt = 0.204000 
+  	gNaTa_tbar_NaTa_t = %f 
+  	gNaTa_tbar_NaTa_modt = %f 
   }
 
 	forsec $o1.apical {
@@ -63,8 +63,8 @@ proc biophys() {
     gamma_CaDynamics_E2 = 0.000509 
     gSK_E2bar_SK_E2 = 0.0012 
   	gSKv3_1bar_SKv3_1 = 0.000261 
-  	gNaTa_tbar_NaTa_modt = 0.019170 
-  	gNaTa_tbar_NaTa_modt = 0.002130 
+  	gNaTa_tbar_NaTa_modt = %f 
+  	gNaTa_tbar_NaTa_modt = %f 
   	gImbar_Im = 0.0000675 
   	g_pas = 0.0000589 
 	}
