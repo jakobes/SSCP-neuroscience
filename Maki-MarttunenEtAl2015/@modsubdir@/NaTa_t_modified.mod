@@ -1,1 +1,0 @@
-../NaTa_t_modified.mod
