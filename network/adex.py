@@ -19,10 +19,12 @@ N = 512
 Vsol = -70 + np.random.random(N)*1.2
 wsol = np.zeros_like(Vsol)
 
-A = np.zeros(shape=(N, N))
-A_idx = np.random.random((N, N))
+# A = np.zeros(shape=(N, N))
+# A_idx = np.random.random((N, N))
 syn_fraq = 0.1
-A[A_idx < syn_fraq] = 1
+# A[A_idx < syn_fraq] = 1
+A = np.random.random((N, N)) < syn_fraq
+np.fill_diagonal(A, 0)      # No self-connections
 
 SW = 1
 syn_weights = np.random.random(N)*SW/(N*syn_fraq)
