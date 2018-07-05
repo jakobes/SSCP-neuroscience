@@ -26,7 +26,7 @@ syn_fraq = 0.1
 A = np.random.random((N, N)) < syn_fraq
 np.fill_diagonal(A, 0)      # No self-connections
 
-SW = 1
+SW = 10
 syn_weights = np.random.random(N)*SW/(N*syn_fraq)
 
 
@@ -40,7 +40,8 @@ spike_map = np.zeros((NT, N))
 
 
 for i, t in enumerate(time[:-1]):
-    Ib = 1*np.random.random(N)
+    Ib = 1*np.random.random(N)      # gaussion scale=dt**(1/2)
+    # Euler maruyama
     I_syn = A@(syn_weights*wsol)
 
     dv, dw = rhs(Vsol, wsol)
@@ -53,6 +54,8 @@ for i, t in enumerate(time[:-1]):
             wsol[j] += 0.0805
             spike_map[i, j] = 1
 
+
+# Let IC(X) = 0
 
 import matplotlib as mpl
 mpl.use("Agg")
