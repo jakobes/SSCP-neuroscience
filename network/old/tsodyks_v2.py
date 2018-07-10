@@ -65,7 +65,7 @@ class TsodyksNetwork:
         return np.asarray((dv, dx, dy, dz, du))
 
     def b(self, y):
-        return self.threshold
+        return self.R*self.threshold
 
 
 T = 400
@@ -118,7 +118,8 @@ import matplotlib.pyplot as plt
 
 
 spike_avg = spike_map.sum()/spike_map.size
-fig = plt.figure(figsize=(10, 10), dpi=93)
+# fig = plt.figure(figsize=(10, 10), dpi=93)
+fig = plt.figure()
 
 ax = fig.add_subplot(111)
 ax.set_title(r"Avg spike frequency = %2.f (\(ms^{-1}\))" % spike_avg)
@@ -135,7 +136,8 @@ fig.savefig("network_tsodyks.png")
 
 import seaborn as sns
 
-fig = plt.figure(figsize=(10, 10), dpi=93)
+# fig = plt.figure(figsize=(10, 10), dpi=93)
+fig = plt.figure()
 
 ax = fig.add_subplot(111)
 ax.set_title("Four excitatory neurons")

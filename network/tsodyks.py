@@ -1,9 +1,13 @@
 import numpy as np
 
-from scipy.integrate import odeint
 import random
 from math import sqrt
-from tqdm import tqdm
+
+try:
+    from tqdm import tqdm
+except ModuleNotFoundError:
+    tqdm = lambda x: x
+
 
 import matplotlib as mpl
 mpl.use("Agg")
@@ -15,7 +19,21 @@ np.random.seed(42)
 
 
 class RHS:
-    def __init__(self, tau, tau1, tau_rec, tau_f, R, U, dt):
+    def __init__(
+            self,
+            tau,
+            tau1,
+            tau_rec,
+            tau_f,
+            R,
+            U,
+            dt,
+            num_n,
+            threshold,
+            syn_frac=0.1,
+            syn_weight=1.8
+    ):
+        self.threshold = threshold
         self.R = R
         self.tau = tau
         self.tau1 = tau1
@@ -23,11 +41,17 @@ class RHS:
         self.U = U
         self.dt = dt
         self.tau_f = tau_f
+        self.A = np.random.random((num_n, num_n))
+        self.A[self.A >= syn_frac] = 0
+        self.A[self.A < syn_frac] = syn_weight
+        np.fill_diagonal(self.A, 0)      # No self-connections
+        self.num_n = num_n
 
-    def __call__(self, y, t, I):
+    def a(self, y):
         V, x, y, z, u = y
+        I_syn = self.A@y
 
-        dv = (self.R*I - V)/self.tau
+        dv = (self.R*I_syn - V)/self.tau
 
         dx = z/self.tau_rec
         dy = -y/self.tau1
@@ -35,68 +59,64 @@ class RHS:
         du = -u/self.tau_f
         return dv, dx, dy, dz, du
 
-    def delta(self, x, a=3):
-        return 1/(a*math.sqrt(math.pi))*np.exp(-(x/a)**2)
+    def b(self):
+        return self.R*self.threshold*np.random.normal(0, scale=sqrt(self.dt), size=self.num_n)
 
 
-T = 400
+T = 4300
 dt = 0.1
-N = int(T/dt + 1)
-
+icv = -70
 num_n = 512
-V_sol = -70 + np.random.random(num_n)*1.2       # V13.5?
-x_sol = np.ones_like(V_sol)
-y_sol = np.zeros_like(V_sol)
-z_sol = np.zeros_like(V_sol)
-u_sol = np.ones_like(V_sol)
+threshold = 15
 
-syn_fraq = 0.1
-A = np.random.random((num_n, num_n))
-A[A >= syn_fraq] = 0
-A[A < syn_fraq] = 1.8
-np.fill_diagonal(A, 0)      # No self-connections
+rhs = RHS(30, 3, 800, 1000, 1.0, 0.5, dt, num_n, threshold)
 
-rhs = RHS(30, 3, 800, 1000, 0.1, 0.5, dt)
-V_array = np.zeros((N, 4))
-spike_map = np.zeros((N, num_n))
+def solve(icv, T, dt, num_n, a, b, threshold):
+    N = int(T/dt + 1)
 
+    V_sol = icv + np.random.random(num_n)*1.2       # V13.5?
+    x_sol = np.ones_like(V_sol)
+    y_sol = np.zeros_like(V_sol)
+    z_sol = np.zeros_like(V_sol)
+    u_sol = np.ones_like(V_sol)
 
-for i, t in tqdm(enumerate(range(N))):
-    # Scale = standard deviation
-    I_b = 15*np.random.normal(0, scale=sqrt(dt), size=num_n)
-    I_syn = A@y_sol
+    V_array = np.zeros((N, 4))
+    spike_map = np.zeros((N, num_n))
 
-    dV, dx, dy, dz, du = rhs(
-        (V_sol, x_sol, y_sol, z_sol, u_sol),
-        t,
-        I_syn
-    )
-    V_sol = V_sol + dt*dV + rhs.R*I_b
-    x_sol = x_sol + dt*dx
-    y_sol = y_sol + dt*dy
-    z_sol = z_sol + dt*dz
-    u_sol = u_sol + dt*du
+    for i, t in tqdm(enumerate(range(N))):
+        dV, dx, dy, dz, du = rhs.a((V_sol, x_sol, y_sol, z_sol, u_sol))
+        V_sol = V_sol + dt*dV + rhs.b()
+        x_sol = x_sol + dt*dx
+        y_sol = y_sol + dt*dy
+        z_sol = z_sol + dt*dz
+        u_sol = u_sol + dt*du
 
-    spike_idx = V_sol > 15
+        spike_idx = V_sol > 15
+        x_sol[spike_idx] -= u_sol[spike_idx]*x_sol[spike_idx]
+        y_sol[spike_idx] -= u_sol[spike_idx]*x_sol[spike_idx]
+        u_sol[spike_idx] += rhs.U*(1 - u_sol[spike_idx])
+        spike_map[i, spike_idx] = 1
 
-    x_sol[spike_idx] -= u_sol[spike_idx]*x_sol[spike_idx]
-    y_sol[spike_idx] -= u_sol[spike_idx]*x_sol[spike_idx]
-    u_sol[spike_idx] += rhs.U*(1 - u_sol[spike_idx])
-    spike_map[i, spike_idx] = 1
-
-    V_array[i] = V_sol[:4]
-    # V_sol[spike_idx] = 13.5
-    V_sol[spike_idx] = -70.6
+        V_array[i] = V_sol[:4]
+        # V_sol[spike_idx] = 13.5
+        V_sol[spike_idx] = -70.6
+    return spike_map, V_array
 
 
-spike_avg = spike_map.sum()/spike_map.size
+spike_map, V_array = solve(icv, T, dt, num_n, rhs.a, rhs.b, threshold)
+
+avg_freq = (spike_map.sum(0)/spike_map.shape[0]).sum()/spike_map.shape[1]
+
 fig = plt.figure(figsize=(10, 10), dpi=93)
 
 ax = fig.add_subplot(111)
-ax.set_title(r"Avg spike frequency = %2.f (\(ms^{-1}\))" % spike_avg)
+ax.set_title(r"Avg spike frequency = %2.f Hz" % (avg_freq*1000))
 ax.set_xlabel("Time (ms)")
 ax.set_ylabel("Neuron number")
 ax.imshow(spike_map[::1].T, cmap="binary")
+
+labels = map(lambda x: int(dt*float(x.get_text()[1:-1])), ax.get_xticklabels())
+ax.set_xticklabels(labels)
 
 x0, x1 = ax.get_xlim()
 y0, y1 = ax.get_ylim()

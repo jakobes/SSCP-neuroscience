@@ -1,7 +1,8 @@
 import numpy as np
 import random
+from math import sqrt
 
-random.seed(42)
+np.random.seed(42)
 
 R = 1
 U = 1
@@ -19,10 +20,7 @@ N = 512
 Vsol = -70 + np.random.random(N)*1.2
 wsol = np.zeros_like(Vsol)
 
-# A = np.zeros(shape=(N, N))
-# A_idx = np.random.random((N, N))
 syn_fraq = 0.1
-# A[A_idx < syn_fraq] = 1
 A = np.random.random((N, N)) < syn_fraq
 np.fill_diagonal(A, 0)      # No self-connections
 
@@ -40,8 +38,8 @@ spike_map = np.zeros((NT, N))
 
 
 for i, t in enumerate(time[:-1]):
-    Ib = 1*np.random.random(N)      # gaussion scale=dt**(1/2)
     # Euler maruyama
+    Ib = 1*np.random.normal(0, scale=sqrt(dt), size=N)      # Scale = standard deviation
     I_syn = A@(syn_weights*wsol)
 
     dv, dw = rhs(Vsol, wsol)
