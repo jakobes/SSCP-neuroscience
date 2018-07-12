@@ -105,7 +105,7 @@ def solve(icv, T, dt, num_n, a, b, threshold, refractory_period=3):
 
         update_idx = (V_sol > 15) & refractory_idx
         x_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
-        y_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
+        y_sol[update_idx] += u_sol[update_idx]*x_sol[update_idx]
         u_sol[update_idx] += (rhs.U*(1 - u_sol))[update_idx]
         # u_sol[update_idx] += rhs.U*(1 - u_sol[update_idx])
         spike_map[i, update_idx] = 1
