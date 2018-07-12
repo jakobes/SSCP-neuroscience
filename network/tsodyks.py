@@ -3,6 +3,8 @@ import numpy as np
 import random
 from math import sqrt
 
+import time
+
 try:
     from tqdm import tqdm
 except ModuleNotFoundError:
@@ -29,9 +31,9 @@ class RHS:
             dt,
             num_n,
             threshold,
-            R = 1,
-            syn_frac = 0.5,
-            syn_weight = 1.8
+            R,
+            syn_frac,
+            syn_weight
     ):
         self.threshold = threshold
         self.R = R
@@ -75,11 +77,11 @@ icv = -70
 num_n = 512
 threshold = 15
 
-rhs = RHS(30, 3, 800, 1000, 0.5, dt, num_n, threshold)
+rhs = RHS(30, 3, 800, 1000, 0.5, dt, num_n, threshold, 1, 0.5, 1.8)
 
 spike_times = np.zeros(num_n)
 
-def solve(icv, T, dt, num_n, a, b, threshold):
+def solve(icv, T, dt, num_n, a, b, threshold, refractory_period=3):
     N = int(T/dt + 1)
 
     V_sol = icv + np.random.random(num_n)*1.2       # V13.5?
@@ -93,15 +95,15 @@ def solve(icv, T, dt, num_n, a, b, threshold):
 
     for i, t in tqdm(enumerate(range(N))):
         t *= dt
-        refactory_idx = (t - spike_times > 3)   # 3 ms refractory time
+        refractory_idx = (t - spike_times > refractory_period)   # 3 ms refractory time
         dV, dx, dy, dz, du = rhs.a((V_sol, x_sol, y_sol, z_sol, u_sol))
-        V_sol = V_sol + (dt*dV + rhs.b())*refactory_idx
+        V_sol = V_sol + (dt*dV + rhs.b())*refractory_idx
         x_sol = x_sol + dt*dx
         y_sol = y_sol + dt*dy
         z_sol = z_sol + dt*dz
         u_sol = u_sol + dt*du
 
-        update_idx = (V_sol > 15) & refactory_idx
+        update_idx = (V_sol > 15) & refractory_idx
         x_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
         y_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
         u_sol[update_idx] += (rhs.U*(1 - u_sol))[update_idx]
