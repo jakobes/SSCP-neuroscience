@@ -25,27 +25,33 @@ class RHS:
             tau1,
             tau_rec,
             tau_f,
-            R,
             U,
             dt,
             num_n,
             threshold,
-            syn_frac=0.1,
-            syn_weight=1.8
+            R = 1,
+            syn_frac = 0.5,
+            syn_weight = 1.8
     ):
         self.threshold = threshold
         self.R = R
-        self.tau = tau
-        self.tau1 = tau1
-        self.tau_rec = tau_rec
-        self.U = U
-        self.dt = dt
-        self.tau_f = tau_f
-        self.A = np.random.random((num_n, num_n))
-        self.A[self.A >= syn_frac] = 0
-        self.A[self.A < syn_frac] = syn_weight
+        # self.tau = tau
+        self.tau = tau/2 + tau*np.random.uniform(0, 1, size=num_n)
+        # self.tau1 = tau1
+        self.tau1 = tau1/2 + tau1*np.random.uniform(0, 1, size=num_n)
+        # self.tau_rec = tau_rec
+        self.tau_rec = tau_rec/2 + tau_rec*np.random.uniform(0, 1, size=num_n)
+        # self.U = U
+        self.U = U/2 + U*np.random.uniform(0, 1, size=num_n)
+        # self.tau_f = tau_f
+        self.tau_f = tau_f/2 + tau_f*np.random.uniform(0, 1, size=num_n)
+
+        random_matrix = np.random.random((num_n, num_n))
+        self.A = syn_weight*(0.5 + np.random.uniform(0, 1, size=(num_n, num_n)))
+        self.A[random_matrix >= syn_frac] = 0
         np.fill_diagonal(self.A, 0)      # No self-connections
         self.num_n = num_n
+        self.dt = dt
 
     def a(self, y):
         V, x, y, z, u = y
@@ -69,7 +75,9 @@ icv = -70
 num_n = 512
 threshold = 15
 
-rhs = RHS(30, 3, 800, 1000, 1.0, 0.5, dt, num_n, threshold)
+rhs = RHS(30, 3, 800, 1000, 0.5, dt, num_n, threshold)
+
+spike_times = np.zeros(num_n)
 
 def solve(icv, T, dt, num_n, a, b, threshold):
     N = int(T/dt + 1)
@@ -84,22 +92,25 @@ def solve(icv, T, dt, num_n, a, b, threshold):
     spike_map = np.zeros((N, num_n))
 
     for i, t in tqdm(enumerate(range(N))):
+        t *= dt
+        refactory_idx = (t - spike_times > 3)   # 3 ms refractory time
         dV, dx, dy, dz, du = rhs.a((V_sol, x_sol, y_sol, z_sol, u_sol))
-        V_sol = V_sol + dt*dV + rhs.b()
+        V_sol = V_sol + (dt*dV + rhs.b())*refactory_idx
         x_sol = x_sol + dt*dx
         y_sol = y_sol + dt*dy
         z_sol = z_sol + dt*dz
         u_sol = u_sol + dt*du
 
-        spike_idx = V_sol > 15
-        x_sol[spike_idx] -= u_sol[spike_idx]*x_sol[spike_idx]
-        y_sol[spike_idx] -= u_sol[spike_idx]*x_sol[spike_idx]
-        u_sol[spike_idx] += rhs.U*(1 - u_sol[spike_idx])
-        spike_map[i, spike_idx] = 1
+        update_idx = (V_sol > 15) & refactory_idx
+        x_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
+        y_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
+        u_sol[update_idx] += (rhs.U*(1 - u_sol))[update_idx]
+        # u_sol[update_idx] += rhs.U*(1 - u_sol[update_idx])
+        spike_map[i, update_idx] = 1
 
         V_array[i] = V_sol[:4]
-        # V_sol[spike_idx] = 13.5
-        V_sol[spike_idx] = -70.6
+        V_sol[update_idx] = 13.5
+        spike_times[update_idx] = t
     return spike_map, V_array
 
 
@@ -110,7 +121,7 @@ avg_freq = (spike_map.sum(0)/spike_map.shape[0]).sum()/spike_map.shape[1]
 fig = plt.figure(figsize=(10, 10), dpi=93)
 
 ax = fig.add_subplot(111)
-ax.set_title(r"Avg spike frequency = %2.f Hz" % (avg_freq*1000))
+ax.set_title(r"Avg spike frequency = %.3f Hz" % (avg_freq*1000))
 ax.set_xlabel("Time (ms)")
 ax.set_ylabel("Neuron number")
 ax.imshow(spike_map[::1].T, cmap="binary")
