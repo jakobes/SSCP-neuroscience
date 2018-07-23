@@ -1,5 +1,4 @@
 import numpy as np
-from tsodyks import Tsodyks
 import matplotlib.pyplot as plt
 from math import sqrt
 
