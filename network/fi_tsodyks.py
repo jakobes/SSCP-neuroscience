@@ -1,13 +1,21 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from math import sqrt
+"""A module for fitting parameters to a fI curve."""
 
 import time
+
+from math import sqrt
+
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 try:
     from numba import jit
 except ModuleNotFoundError:
+    print("Could not import numba. Using unity decorator")
+
+
     def jit(func, **kwargs):
+        """Unity decorator."""
         return func
 
 
@@ -18,7 +26,7 @@ def tsodyks_solver(
         tau,
         threshold,
         refractory_period,
-        icv = -70.6,
+        icv = 13.5,
         T = 11000,
         tau1 = 3,
         tau_rec = 800,
@@ -27,8 +35,9 @@ def tsodyks_solver(
         dt = 0.1,
         num_n = 512,
         R = 1,
-        syn_frac = 0.4,
-        syn_weight = 1.8
+        syn_frac = 0.1,
+        syn_weight = 1.8,
+        white_noise = True
 ):
     """
     Solve the Tsodyks model for either a singlkke neuron or a newtwork.
@@ -48,6 +57,7 @@ def tsodyks_solver(
         R (float): synaptic resistance.
         syn_frac (float): Fraction of neurons that are connected.
         syn_weight (float): Synaptic weight.
+        white_noise (bool): If True, use Euler-Maruyama else Euler.
     """
     # Creeate connectivity matrix
     random_matrix = np.random.random((num_n, num_n))
@@ -96,12 +106,13 @@ def tsodyks_solver(
         du = -u_sol/tau_f
 
         # Background noise
-        Ib = R*stimulus*np.random.normal(
-            0,
-            scale=sqrt(dt),
-            size=num_n
-        )
-        # Ib = dt*R*(stimulus - 0.025) + 0.05*np.random.random(num_n)
+        Ib = np.ones(shape=num_n)*dt*R*stimulus
+        if white_noise:
+            Ib[:] = R*stimulus*np.random.normal(
+                0,
+                scale=sqrt(dt),
+                size=num_n
+            )
 
         # Update solutions
         V_sol = V_sol + (dt*dv + Ib)*refractory_idx
@@ -123,13 +134,13 @@ def tsodyks_solver(
 
         # "plot" solutions
         V_array[i] = V_sol[:4]
-        V_sol[update_idx] = 13.5
+        V_sol[update_idx] = icv     # 13.5
         spike_times[update_idx] = t
     return spike_map, V_array
 
 
 if __name__ == "__main__":
-    DT = 0.01
+    DT = 0.05
     synaptic_potential = np.arange(16)      # milli Volts = nano Ampere times Mega Ohm
 
     threshold = 15

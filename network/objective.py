@@ -1,18 +1,32 @@
+"""A function for creating a spike map from a system o tsodyks neurons."""
+
 import time
 import operator
 
-import numpy as np
-import scipy.optimize as opt
-
-from fi_tsodyks import tsodyks_solver
-
 from multiprocessing import Pool
 from functools import partial
+from fi_tsodyks import tsodyks_solver
+from scipy.optimize import minimize
+
+import numpy as np
+
+
+try:
+    from numba import jit
+except ModuleNotFoundError:
+    print("Could not import numba. Using unity decorator")
+
+
+    def jit(func, **kwargs):
+        """Unity decorator"""
+        return func
 
 
 def objective_function(x, reference):
     """
     Compute the MSE between tsodyks fI curve and the reference one.
+
+    NB! Multiprocess apparently does not like the function signature. Look into repplying numba
 
     Args:
         x tuple(float, float, float): tau, threshold, refractory_period
@@ -28,13 +42,13 @@ def objective_function(x, reference):
     synaptic_potential = np.arange(16)      # milli Volts = nano Ampere times Mega Ohm
     frequency_list = []
     for stim in synaptic_potential:     # Compute frequency for each stimulus amplitude
-        spike_map, V_array = tsodyks_solver(
+        spike_map, _ = tsodyks_solver(
             stimulus=stim,
-            tau=30,
-            threshold=15,
+            tau=tau,
+            threshold=threshold,
             refractory_period=refractory_period,
-            dt = DT,
-            num_n = 1
+            dt=DT,
+            num_n=1
         )
         frequency_list.append(spike_map.sum()/T/1000)   # compute frequency (Hz ~ [1/s])
 
@@ -55,10 +69,9 @@ def nelderMead(objective, x0=(30.9762, 15.3912, 3.0544), maxiter=150):
     Returns scipy result object # TODO: Fix this
     """
     tick = time.time()
-    foo = opt.minimize(
+    foo = minimize(
         objective,
         x0,
-        args=args,
         method="Nelder-Mead",
         tol=1e-6,
         options={
@@ -132,6 +145,9 @@ if __name__ == "__main__":
     np.random.seed(42)
     reference = np.load("fi_data.npy")
 
-    # nelderMead(partial(objective_function, reference=reference))
-    result = grid_search_mp(partial(objective_function, reference=reference))
-    print(result)
+    result = grid_search_mp(partial(objective_function, reference=reference), N=10)
+    # result = nelderMead(
+    #     lambda x: partial(jit(cache=True, nopython=True, nogil=True)(objective_function), reference=reference)(x)[-1],  # TODO: Really ugly
+    #     x0=(33, 13, 0)
+    # )
+    print(result)       # 33, 13, 0 is best so far
