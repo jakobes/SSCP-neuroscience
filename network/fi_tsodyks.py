@@ -5,6 +5,8 @@ import time
 from math import sqrt
 
 import numpy as np
+import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 
@@ -14,10 +16,9 @@ except ModuleNotFoundError:
     print("Could not import numba. Using unity decorator")
 
 
-    def jit(func, **kwargs):
+    def jit(**kwargs):
         """Unity decorator."""
-        return func
-
+        return lambda x: x 
 
 
 @jit(cache=True, nopython=True, nogil=True)
@@ -37,7 +38,7 @@ def tsodyks_solver(
         R = 1,
         syn_frac = 0.1,
         syn_weight = 1.8,
-        white_noise = True
+        white_noise = True,
 ):
     """
     Solve the Tsodyks model for either a singlkke neuron or a newtwork.
@@ -73,7 +74,8 @@ def tsodyks_solver(
     # np.fill_diagonal(A, 0)      # No self-connections
 
     # Initialise solution arrays
-    V_sol = icv + np.random.random(num_n)*1.2       # V13.5?
+    # V_sol = icv + np.random.random(num_n)*1.2       # V13.5?
+    V_sol = np.ones(num_n)*icv
     x_sol = np.ones_like(V_sol)
     y_sol = np.zeros_like(V_sol)
     z_sol = np.zeros_like(V_sol)
@@ -90,7 +92,7 @@ def tsodyks_solver(
         t *= dt     # Scale time to real world (ms)
 
         # Compute indices of active neurons (That is, not resting)
-        refractory_idx = (t - spike_times > refractory_period)   # 3 ms refractory time
+        refractory_idx = (t - spike_times >= refractory_period)   # 3 ms refractory time
 
         I_syn = A@y_sol     # Synaptic currents
 
@@ -106,7 +108,7 @@ def tsodyks_solver(
         du = -u_sol/tau_f
 
         # Background noise
-        Ib = np.ones(shape=num_n)*dt*R*stimulus
+        Ib = dt*np.ones(shape=num_n)*R*stimulus
         if white_noise:
             Ib[:] = R*stimulus*np.random.normal(
                 0,
@@ -115,21 +117,21 @@ def tsodyks_solver(
             )
 
         # Update solutions
-        V_sol = V_sol + (dt*dv + Ib)*refractory_idx
-        x_sol = x_sol + dt*dx
-        y_sol = y_sol + dt*dy
-        z_sol = z_sol + dt*dz
-        u_sol = u_sol + dt*du
+        V_sol += (dt*dv + Ib/tau)*refractory_idx
+        x_sol += dt*dx
+        y_sol += dt*dy
+        z_sol += dt*dz
+        u_sol += dt*du
 
         # Spiking and not resting
-        update_idx = (V_sol > 15) & refractory_idx
+        update_idx = (V_sol > threshold) & refractory_idx
         x_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
         y_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
         u_sol[update_idx] += (U*(1 - u_sol))[update_idx]
 
         # Again, because numba is stupid
-        for j, t in enumerate(update_idx):
-            if t:
+        for j, bool_idx in enumerate(update_idx):
+            if bool_idx:
                 spike_map[i, j] = 1
 
         # "plot" solutions
@@ -139,7 +141,7 @@ def tsodyks_solver(
     return spike_map, V_array
 
 
-if __name__ == "__main__":
+def make_fiplot():
     DT = 0.05
     synaptic_potential = np.arange(16)      # milli Volts = nano Ampere times Mega Ohm
 
@@ -175,6 +177,45 @@ if __name__ == "__main__":
 
     labels = map(lambda x: int(DT*float(x.get_text()[1:-1])), ax.get_xticklabels())
     ax.set_xticklabels(labels)
+
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    ax.set_aspect(0.5*abs(x1 - x0)/abs(y1 - y0))
+
+    fig.savefig("network_tsodyks.png")
+    import seaborn as sns
+
+    fig = plt.figure(figsize=(10, 10), dpi=93)
+
+    ax = fig.add_subplot(111)
+    ax.set_title("Four excitatory neurons")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Membrane potential (mV)")
+    ax.plot(V_array)
+
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    ax.set_aspect(0.5*abs(x1 - x0)/abs(y1 - y0))
+
+    fig.savefig("V_tsodyks.png")
+
+
+if __name__ == "__main__":
+    DT = 0.01
+    spike_map, V_array = tsodyks_solver(1.5, 10, 1, 3, icv=0, dt=DT, white_noise=False, num_n=1, T=1000)
+
+    avg_freq = (spike_map.sum(0)/spike_map.shape[0]).sum()/spike_map.shape[1]/DT
+    print("Avg freq: ", avg_freq, "(kHz)")
+    fig = plt.figure(figsize=(10, 10), dpi=93)
+
+    ax = fig.add_subplot(111)
+    ax.set_title(r"Avg spike frequency = %.3f kHz" % (avg_freq))
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Neuron number")
+    ax.imshow(spike_map[::1].T, cmap="binary")
+
+    # labels = map(lambda x: int(DT*float(x.get_text()[1:-1])), ax.get_xticklabels())
+    # ax.set_xticklabels(labels)
 
     x0, x1 = ax.get_xlim()
     y0, y1 = ax.get_ylim()

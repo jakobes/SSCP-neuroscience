@@ -150,4 +150,4 @@ if __name__ == "__main__":
     #     lambda x: partial(jit(cache=True, nopython=True, nogil=True)(objective_function), reference=reference)(x)[-1],  # TODO: Really ugly
     #     x0=(33, 13, 0)
     # )
-    print(result)       # 33, 13, 0 is best so far
+    print(result)       # 35, 12, 0 is best so far
