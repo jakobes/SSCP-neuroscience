@@ -37,7 +37,7 @@ def tsodyks_solver(
         num_n = 512,
         R = 1,
         syn_frac = 0.1,
-        syn_weight = 1.8,
+        syn_weight = 0,
         white_noise = True,
 ):
     """
@@ -62,7 +62,8 @@ def tsodyks_solver(
     """
     # Creeate connectivity matrix
     random_matrix = np.random.random((num_n, num_n))
-    A = syn_weight*(0.5 + np.random.uniform(0, 1, size=(num_n, num_n)))
+    # A = syn_weight*(0.5 + np.random.uniform(0, 1, size=(num_n, num_n)))
+    A = np.ones(shape=(num_n, num_n))*syn_weight
 
     # Because numba is stupid
     for i in range(A.shape[0]):
@@ -74,8 +75,9 @@ def tsodyks_solver(
     # np.fill_diagonal(A, 0)      # No self-connections
 
     # Initialise solution arrays
-    # V_sol = icv + np.random.random(num_n)*1.2       # V13.5?
-    V_sol = np.ones(num_n)*icv
+    V_sol = icv*np.random.random(num_n)
+    # V_sol = icv - 1.2/2 + np.random.random(num_n)*1.2       # V13.5?
+    # V_sol = np.ones(num_n)*icv
     x_sol = np.ones_like(V_sol)
     y_sol = np.zeros_like(V_sol)
     z_sol = np.zeros_like(V_sol)
@@ -87,7 +89,7 @@ def tsodyks_solver(
     spike_map = np.zeros((N, num_n))
 
     # Solution loop
-    spike_times = np.zeros(num_n)
+    spike_times = -np.ones(num_n)*2*refractory_period
     for i, t in enumerate(range(N)):
         t *= dt     # Scale time to real world (ms)
 
@@ -110,11 +112,12 @@ def tsodyks_solver(
         # Background noise
         Ib = dt*np.ones(shape=num_n)*R*stimulus
         if white_noise:
-            Ib[:] = R*stimulus*np.random.normal(
-                0,
-                scale=sqrt(dt),
-                size=num_n
-            )
+            Ib[:] = R*stimulus*(1 - 0.05/2) + np.random.random(size=num_n)*0.05
+            # Ib[:] = R*stimulus*np.random.normal(
+            #     R*stimulus, # 0
+            #     scale=sqrt(dt),
+            #     size=num_n
+            # )
 
         # Update solutions
         V_sol += (dt*dv + Ib/tau)*refractory_idx
@@ -200,28 +203,47 @@ def make_fiplot():
     fig.savefig("V_tsodyks.png")
 
 
-if __name__ == "__main__":
-    DT = 0.01
-    spike_map, V_array = tsodyks_solver(1.5, 10, 1, 3, icv=0, dt=DT, white_noise=False, num_n=1, T=1000)
+def network():
+    DT = 0.001
+    threshold = 15
+    tau = 30
+    refractory_period = 1
+    T = 110
+    stimulus = 15
 
-    avg_freq = (spike_map.sum(0)/spike_map.shape[0]).sum()/spike_map.shape[1]/DT
-    print("Avg freq: ", avg_freq, "(kHz)")
+    tick = time.clock()
+    spike_map, V_array = tsodyks_solver(
+        icv=13.5,
+        stimulus=stimulus,
+        tau=30,
+        threshold=15,
+        refractory_period=refractory_period,
+        dt=DT,
+        num_n=8,
+        white_noise=True,
+        T=T
+    )
+    tock = time.clock()
+    print("Time: ", tock - tick)
+
+    avg_freq = (spike_map.sum(0)/spike_map.shape[0]).sum()/(spike_map.shape[1]*DT)
     fig = plt.figure(figsize=(10, 10), dpi=93)
 
     ax = fig.add_subplot(111)
-    ax.set_title(r"Avg spike frequency = %.3f kHz" % (avg_freq))
+    ax.set_title(r"Avg spike frequency = %.3f Hz" % (avg_freq*1000))
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Neuron number")
     ax.imshow(spike_map[::1].T, cmap="binary")
 
-    # labels = map(lambda x: int(DT*float(x.get_text()[1:-1])), ax.get_xticklabels())
-    # ax.set_xticklabels(labels)
+    labels = map(lambda x: int(DT*float(x.get_text()[1:-1])), ax.get_xticklabels())
+    ax.set_xticklabels(labels)
 
     x0, x1 = ax.get_xlim()
     y0, y1 = ax.get_ylim()
     ax.set_aspect(0.5*abs(x1 - x0)/abs(y1 - y0))
 
     fig.savefig("network_tsodyks.png")
+    """
     import seaborn as sns
 
     fig = plt.figure(figsize=(10, 10), dpi=93)
@@ -237,3 +259,10 @@ if __name__ == "__main__":
     ax.set_aspect(0.5*abs(x1 - x0)/abs(y1 - y0))
 
     fig.savefig("V_tsodyks.png")
+    """
+    print(spike_map.sum())
+
+
+if __name__ == "__main__":
+    np.random.seed(42)
+    network()

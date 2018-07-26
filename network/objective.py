@@ -54,7 +54,7 @@ def objective_function(x, reference):
 
     # Compute error
     fl = np.array(frequency_list)
-    return x, np.power(refractory_period - fl, 2).sum()
+    return x, np.power(reference - fl, 2).sum()
 
 
 def nelderMead(objective, x0=(30.9762, 15.3912, 3.0544), maxiter=150):
