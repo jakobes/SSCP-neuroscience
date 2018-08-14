@@ -38,7 +38,6 @@ def compute_frequency(spike_map, dt):
     return spike_map.sum(1)/spike_map.shape[1]/dt*1000
 
 
-@jit(cache=True, nopython=False, nogil=True)
 def tsodyks_solver(
         stimulus,
         tau,
@@ -84,22 +83,24 @@ def tsodyks_solver(
     # A = np.ones(shape=(num_n, num_n))*syn_weight
     A = np.ones(shape=(num_n, num_n))
     num_ex = int(num_n*(1 - ie_frac))
-    A[:num_ex, :num_ex] = syn_weight   # ee
-    A[:num_ex, num_ex:] = 5.4   # ei
-    A[num_ex:] = -1.8   # i
-    A[num_ex:] = -1.8   # i
+    A[:num_ex, :num_ex] = 1.8*syn_weight   # ee
+    A[:num_ex, num_ex:] = 5.4*syn_weight   # ei
+    A[num_ex:, :num_ex] = -7.2*syn_weight   # ie
+    A[num_ex:, num_ex:] = 0   # ii
 
     _U = np.zeros(num_n)
     _U[:num_ex] = U
-    _U[num_ex:] = 0.04
+    _U[num_ex:] = 0.4
 
     _tau_rec = np.zeros(num_n)
     _tau_rec[:num_ex] = tau_rec
     _tau_rec[num_ex:] = 100
 
-    # Solution loop
-
     _refractory_period = np.zeros(num_n)
+    _refractory_period[:num_ex] = refractory_period
+    _refractory_period[num_ex:] = 2
+
+    _ = np.zeros(num_n)
     _refractory_period[:num_ex] = refractory_period
     _refractory_period[num_ex:] = 2
 
@@ -128,7 +129,7 @@ def tsodyks_solver(
     random_component = np.random.random(size=num_n)
     Ib = dt*np.ones(shape=num_n)*R*stimulus
 
-    x_list = []
+    x_list = np.empty(shape=(N, num_n))
     for i, t in enumerate(range(N)):
         t *= dt     # Scale time to real world (ms)
 
@@ -160,13 +161,24 @@ def tsodyks_solver(
         x_sol += dt*dx
         y_sol += dt*dy
         z_sol += dt*dz
-        u_sol += dt*du
+        # u_sol += dt*du
 
         # Spiking and not resting
         update_idx = (V_sol > threshold) & refractory_idx
-        x_sol[update_idx] -= u_sol[update_idx]*x_sol[update_idx]
-        y_sol[update_idx] += u_sol[update_idx]*x_sol[update_idx]
-        u_sol[update_idx] += (_U*(1 - u_sol))[update_idx]
+        ex_update = np.where(update_idx[:num_ex])[0]       # excitatory
+        in_update = num_ex + np.where(update_idx[num_ex:])[0]       # inhibitory
+
+        y_sol[ex_update] += u_sol[ex_update]*x_sol[ex_update]
+        y_sol[in_update] += u_sol[in_update]*(1 - y_sol[in_update])
+
+        x_sol[ex_update] -= u_sol[ex_update]*x_sol[ex_update]
+        x_sol[num_ex:] = 1 - y_sol[num_ex:] - z_sol[num_ex:]
+        if (x_sol > 1).any():
+            print(np.where(x_sol > 1)[0])
+            print(x_sol[np.where(x_sol > 1)[0]])
+            print()
+
+        # u_sol[update_idx] += (_U*(1 - u_sol))[update_idx]
 
         # Again, because numba is stupid
         for j, bool_idx in enumerate(update_idx):
@@ -174,13 +186,13 @@ def tsodyks_solver(
                 fire_list.append(SpikeTuple(T=i, id=j))
                 V_sol[j] = icv
                 spike_times[j] = t
-        x_list.append(x_sol.copy())
+        x_list[i] = x_sol
     return fire_list, np.asarray(x_list)
 
 
 def binning():
     DT = 0.5
-    T = 11000
+    T = 1100
     NUM_N = 500
     tick = time.clock()
     fire_list, x_map = tsodyks_solver(
@@ -194,16 +206,17 @@ def binning():
         T=T,
         stimulus=0.5,
         syn_frac=0.1,
-        syn_weight=1.0,
-        U=0.01,                   # 0.5
+        syn_weight=5e-1,
+        U=0.5,                   # 0.5
         tau_f=1000,              # 1000
         tau_rec=80,              # 800
         tau1=3,                  # 3
         seed=42,
-        noise_scale=1
+        noise_scale=1,
+        ie_frac=0.2
     )
     tock = time.clock()
-    print(len(fire_list)/(T/1000)/NUM_N)
+    print("Time: ", tock - tick)
 
     import operator
     id_vector = np.fromiter(map(operator.attrgetter("id"), fire_list), dtype="f4")
@@ -213,19 +226,24 @@ def binning():
     from itertools import groupby
     bins = [
         len(list(g))/(NUM_N*5/DT) for _, g in groupby(
-            fire_list, lambda x: x.T//int(5/DT)
+            fire_list, lambda x: x.T//int(10/DT)
         )
     ]
 
     res = 1
-    sns.set()
+    # sns.set()
     fig = plt.figure()
 
-    ax = fig.add_subplot(211)
-    ax.plot(np.linspace(0, 11000, len(bins)), bins)
+    ax = fig.add_subplot(311)
+    ax.set_title("Average frequency: {:.2f}".format(len(fire_list)/(T/1000)/NUM_N))
+    ax.plot(np.linspace(0, T, len(bins)), bins)
 
-    ax = fig.add_subplot(212)
-    ax.plot(np.linspace(0, 11000, x_map.shape[0]), x_map.sum(1)/NUM_N)
+    ax = fig.add_subplot(312)
+    ax.plot(np.linspace(0, T, x_map.shape[0]), x_map.sum(1)/NUM_N)
+
+    ax = fig.add_subplot(313)
+    # ax.scatter(time_array, id_vector)
+    ax.plot(time_array, id_vector, "bx", markersize=0.2, mew=0.2)
     fig.savefig("foo.png")
 
 
