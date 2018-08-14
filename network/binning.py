@@ -25,6 +25,25 @@ except ModuleNotFoundError:
         return lambda x: x 
 
 
+def grouper(mylist, interval):
+    bucket_list = []
+    mylist = list(mylist)       # Copy
+    T = max(mylist)
+
+    threshold = interval
+    while threshold <= T + interval:
+        bucket = []
+        while len(mylist) > 0:
+            if mylist[0] < threshold:
+                bucket.append(mylist[0])
+                mylist.pop(0)
+            else:
+                break
+        bucket_list.append(bucket)
+        threshold += interval
+    return bucket_list
+
+
 def compute_frequency(spike_map, dt):
     """Compute the frequency for each row in the spike_map. Assumes dt in ms.
 
@@ -204,7 +223,7 @@ def binning():
         dt=DT,
         num_n=NUM_N,
         T=T,
-        stimulus=0.5,
+        stimulus=0.0,
         syn_frac=0.1,
         syn_weight=5e-1,
         U=0.5,                   # 0.5
@@ -223,12 +242,7 @@ def binning():
     time_array = np.fromiter(map(operator.attrgetter("T"), fire_list), dtype="f4")
 
     # Reduce the id_array into bins of 5 ms
-    from itertools import groupby
-    bins = [
-        len(list(g))/(NUM_N*5/DT) for _, g in groupby(
-            fire_list, lambda x: x.T//int(5/DT)
-        )
-    ]
+    bins = list(map(len, grouper(time_array, int(5/DT))))
 
     res = 1
     # sns.set()
@@ -239,13 +253,14 @@ def binning():
     ax.plot(np.linspace(0, T, len(bins)), bins)
 
     ax = fig.add_subplot(312)
-    ax.plot(np.linspace(0, T, x_map.shape[0]), x_map.sum(1)/NUM_N)
+    ax.plot(np.linspace(0, T, len(x_map)), x_map.sum(1)/NUM_N)
 
     ax = fig.add_subplot(313)
-    # ax.scatter(time_array, id_vector)
-    ax.plot(time_array, id_vector, "bx", markersize=0.2, mew=0.2)
+    # new_x = np.linspace(0, T, len(x_map))
+    # new_f = np.interp(new_x, time_array*DT, id_vector)
+    # ax.plot(new_x, new_f, "bx", markersize=0.2, mew=0.2)
+    ax.plot([0] + list(time_array*DT), [0] + list(id_vector), "x", markersize=0.2)
     fig.savefig("foo.png")
-
 
 if __name__ == "__main__":
     binning()
