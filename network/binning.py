@@ -83,10 +83,10 @@ def tsodyks_solver(
     # A = np.ones(shape=(num_n, num_n))*syn_weight
     A = np.ones(shape=(num_n, num_n))
     num_ex = int(num_n*(1 - ie_frac))
-    A[:num_ex, :num_ex] = 1.8*syn_weight   # ee
-    A[:num_ex, num_ex:] = 5.4*syn_weight   # ei
+    A[:num_ex, :num_ex] = 1.8*syn_weight    # ee
+    A[:num_ex, num_ex:] = 5.4*syn_weight    # ei
     A[num_ex:, :num_ex] = -7.2*syn_weight   # ie
-    A[num_ex:, num_ex:] = 0   # ii
+    A[num_ex:, num_ex:] = 0                 # ii
 
     _U = np.zeros(num_n)
     _U[:num_ex] = U
@@ -100,9 +100,9 @@ def tsodyks_solver(
     _refractory_period[:num_ex] = refractory_period
     _refractory_period[num_ex:] = 2
 
-    _ = np.zeros(num_n)
-    _refractory_period[:num_ex] = refractory_period
-    _refractory_period[num_ex:] = 2
+    _tau1 = np.zeros(num_n)
+    _tau1[:num_ex] = tau1
+    _tau1[num_ex:] = 10
 
     # Because numba is stupid
     for i in range(A.shape[0]):
@@ -143,8 +143,8 @@ def tsodyks_solver(
 
         # Synaptic kinetics
         dx = z_sol/_tau_rec
-        dy = -y_sol/tau1
-        dz = y_sol/tau1 - z_sol/_tau_rec
+        dy = -y_sol/_tau1
+        dz = y_sol/_tau1 - z_sol/_tau_rec
 
         # Synaptic resources
         du = -u_sol/tau_f
@@ -220,13 +220,13 @@ def binning():
 
     import operator
     id_vector = np.fromiter(map(operator.attrgetter("id"), fire_list), dtype="f4")
-    time_array = np.linspace(0, T, id_vector.size)
+    time_array = np.fromiter(map(operator.attrgetter("T"), fire_list), dtype="f4")
 
     # Reduce the id_array into bins of 5 ms
     from itertools import groupby
     bins = [
         len(list(g))/(NUM_N*5/DT) for _, g in groupby(
-            fire_list, lambda x: x.T//int(10/DT)
+            fire_list, lambda x: x.T//int(5/DT)
         )
     ]
 
