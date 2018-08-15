@@ -1,18 +1,38 @@
 """A module for fitting parameters to a fI curve."""
 
 import time
+import operator
 
 from math import sqrt
 from itertools import takewhile
 
 import numpy as np
-import matplotlib as mpl
-mpl.use("Agg")
 import matplotlib.pyplot as plt
-
 import seaborn as sns
 
 from collections import namedtuple
+
+
+def num_spikes(fire_list, dt):
+    burst_dict = {}
+    for fire in map(operator.attrgetter("T"), fire_list):
+        if fire in burst_dict:
+            burst_dict[fire] += 1
+        else:
+            burst_dict[fire] = 1
+
+    xvals = np.fromiter((i*dt for i in sorted(burst_dict.keys())), dtype="f8")
+    yvals = np.fromiter((burst_dict[i] for i in burst_dict.keys()), dtype="f8")
+    return xvals, yvals
+
+
+def nonzero_runs(a):
+    # Create an array that is 1 where a is 0, and pad each end with an extra 0.
+    iszero = np.concatenate(([0], np.greater(a, 0).view(np.int8), [0]))
+    absdiff = np.abs(np.diff(iszero))
+    # Runs start and end where absdiff is 1.
+    ranges = np.where(absdiff == 1)[0].reshape(-1, 2)
+    return ranges
 
 
 def grouper(mylist, interval):
@@ -47,13 +67,32 @@ def compute_frequency(spike_map, dt):
     return spike_map.sum(1)/spike_map.shape[1]/dt*1000
 
 
-def rolling_window(a, window):
     a = list(a)
     sumlist = []
     while len(a) > 0:
-        sumlist.append(len(list(takewhile(lambda x: x - a[0] <= window, a))))
+        sumlist.append(len(list(takewhile(lambda x: abs(x - a[0]) <= window, a))))
         a.pop(0)
     return sumlist
+
+
+def find_bursts(fire_list, interval, cutoff):
+    burst_dict = {0: []}
+
+    prev_spike = 0
+    burst_id = 0
+    for fire in map(operator.attrgetter("T"), fire_list):
+        if fire - prev_spike < interval:
+            burst_dict[burst_id].append(fire)
+        else:
+            burst_id += 1
+            burst_dict[burst_id] = []
+        prev_spike = fire
+
+    new_dict = {}
+    for k, v in burst_dict.items():
+        if len(v) > cutoff:
+            new_dict[k] = (min(v), max(v))
+    return new_dict
 
 
 def tsodyks_solver(
@@ -73,7 +112,7 @@ def tsodyks_solver(
         syn_frac = 0.1,
         syn_weight = 1.8,
         noise_scale = 1,
-        ie_frac = 0,
+        ie_frac = 0.2,
         seed = None
 ):
     """
@@ -102,9 +141,9 @@ def tsodyks_solver(
     A = np.ones(shape=(num_n, num_n))
     num_ex = int(num_n*(1 - ie_frac))
     A[:num_ex, :num_ex] = 1.8*syn_weight    # ee
-    A[:num_ex, num_ex:] = 5.4*syn_weight    # ei
-    A[num_ex:, :num_ex] = -7.2*syn_weight   # ie
-    A[num_ex:, num_ex:] = 0                 # ii
+    A[:num_ex, num_ex:] = -1.8*syn_weight    # ie -- 7.2
+    A[num_ex:, :num_ex] = 2.4*syn_weight   # ei -- 5.4
+    A[num_ex:, num_ex:] = -0*syn_weight                 # ii -- -2.2
 
     # Define different parameters for excitatory and inhibitory
     _U = np.zeros(num_n)
@@ -203,25 +242,13 @@ def tsodyks_solver(
     return fire_list, np.asarray(x_list)
 
 
-
-import numpy as np
-
-def nonzero_runs(a):
-    # Create an array that is 1 where a is 0, and pad each end with an extra 0.
-    iszero = np.concatenate(([0], np.greater(a, 0).view(np.int8), [0]))
-    absdiff = np.abs(np.diff(iszero))
-    # Runs start and end where absdiff is 1.
-    ranges = np.where(absdiff == 1)[0].reshape(-1, 2)
-    return ranges
-
-
-def binning():
+def binning(tau, threshold, icv, refractory_period, R, name=None, syn_weight=5e-1):
     DT = 0.5
     T = 11000
     NUM_N = 500
     tick = time.clock()
     fire_list, x_map = tsodyks_solver(
-        tau=41.4,                 # 30
+        tau=tau,                 # 30
         threshold=12.6,           # 15
         icv=-87.1,                # 13.5
         refractory_period=5,      # 3
@@ -231,46 +258,80 @@ def binning():
         T=T,
         stimulus=0.0,
         syn_frac=0.1,
-        syn_weight=5e-1,
+        syn_weight=syn_weight,
         U=0.5,                   # 0.5
         tau_f=1000,              # 1000
         tau_rec=80,              # 800
         tau1=3,                  # 3
         seed=42,
         noise_scale=1,
-        ie_frac=0.2
+        ie_frac=0.2     # 0.4
     )
     tock = time.clock()
     print("Time: ", tock - tick)
 
-    import operator
     id_vector = np.fromiter(map(operator.attrgetter("id"), fire_list), dtype="f4")
     time_array = np.fromiter(map(operator.attrgetter("T"), fire_list), dtype="f4")
 
     # Reduce the id_array into bins of 5 ms
     bins = list(map(len, grouper(time_array, int(5/DT))))
 
-    res = 1
-    # sns.set()
-    fig = plt.figure()
+    sns.set()
+    fig = plt.figure(figsize=(20, 20))
 
-    ax = fig.add_subplot(311)
-    ax.set_title("Average frequency: {:.2f}".format(len(fire_list)/(T/1000)/NUM_N))
-    ax.plot(np.linspace(0, T, len(bins)), list(map(lambda x: x/NUM_N, bins)))
+    ax = fig.add_subplot(211)
+    ax.set_title("Average frequency: {:.2f}".format(len(id_vector)/(T/1000)/NUM_N), fontsize=48)
+    ax.plot(np.linspace(0, T, len(bins)), list(map(lambda x: x/(NUM_N*5/DT), bins)), linewidth=2)
+    ax.tick_params(axis='both', which='major', labelsize=26)
+    ax.tick_params(axis='both', which='minor', labelsize=24)
 
-    ax = fig.add_subplot(312)
-    ax.plot(np.linspace(0, T, len(x_map)), x_map.sum(1)/NUM_N)
+    ax = fig.add_subplot(212)
+    ax.plot([0] + list(time_array*DT), [0] + list(id_vector), "x", markersize=0.4, mew=0.7)
+    ax.tick_params(axis='both', which='major', labelsize=26)
+    ax.tick_params(axis='both', which='minor', labelsize=24)
 
-    ax = fig.add_subplot(313)
-    ax.plot([0] + list(time_array*DT), [0] + list(id_vector), "x", markersize=0.2)
-    fig.savefig("foo.png")
+    cumulative_bursts = find_bursts(fire_list, 5/DT, 10)
+    x = list(map(lambda x: sum(x)/2*DT, cumulative_bursts.values()))
+    ax.plot(x, 505*np.ones_like(x), "ro", markersize=10, mew=1)
 
-    cumsum = np.asarray(rolling_window(time_array, 5/DT))
-    cumsum[cumsum < 20] = 0
-    bursts = nonzero_runs(cumsum)
-    print("Length of bursts: ", (bursts[:, -1] - bursts[:, 0])*DT)
-    print("Burst frequency: ", bursts.shape[0]/T*1000)
+    if name is None:
+        name = "foo"
+    fig.savefig("images/{}.pdf".format(name))
+    fig.savefig("images/{}.png".format(name))
+
+    BurstTuple = namedtuple("BurstTuple", ["durations", "frequency"])
+    return BurstTuple(
+        sum(map(lambda x: x[1] - x[0], cumulative_bursts.values()))/len(cumulative_bursts),
+        len(cumulative_bursts)
+    )
 
 
 if __name__ == "__main__":
-    binning()
+    ParameterTuple = namedtuple(
+        "ParameterTuple",
+        ["tau", "threshold", "icv", "refractory_period", "R"]
+    )
+    spec_dict = {
+        100: ParameterTuple(tau=41.4, threshold=12.6, icv=-87.1, refractory_period=5, R=42),
+        95: ParameterTuple(tau=39.6, threshold=10.2, icv=-81, refractory_period=5, R=34),
+        90: ParameterTuple(tau=37.4, threshold=9.5, icv=-89.6, refractory_period=5, R=31.6),
+        85: ParameterTuple(tau=38.1, threshold=8.1, icv=-78.6, refractory_period=5, R=27),
+        80: ParameterTuple(tau=37.1, threshold=7.4, icv=-80.6, refractory_period=5, R=24.7),
+        75: ParameterTuple(tau=37.4, threshold=7.8, icv=-88.8, refractory_period=5, R=25.9),
+    }
+
+    mutant_dict = {}
+    for fraq, spec in spec_dict.items():
+        print("Computing fraq: ", fraq)
+        mutant_dict[fraq] = binning(
+            tau=spec.tau,
+            threshold=spec.threshold,
+            icv=spec.icv,
+            refractory_period=spec.refractory_period,
+            R=spec.R,
+            name=fraq,
+            syn_weight=10
+        )
+
+    for k, v in mutant_dict.items():
+        print(k, v.frequency, v.durations)
