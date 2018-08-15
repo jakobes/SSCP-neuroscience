@@ -1,0 +1,201 @@
+\documentclass[twocolumn, a4paper,10pt, norsk]{scrartcl}
+%\usepackage[paperwidth=5.5in, paperheight=8.5in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{default}
+%\usepackage[T1]{fontenc} %for å bruke æøå
+\usepackage{graphicx} %for å inkludere grafikk
+\usepackage{verbatim} %for å inkludere filer med tegn LaTeX ikke liker
+\usepackage{mathpazo}
+\bibliographystyle{plain}
+\usepackage{amsmath}
+\usepackage[english]{babel}
+\usepackage{slashed}
+\usepackage{pdfpages}
+% \usepackage[english]{duomasterforside}
+
+\usepackage[section]{placeins}
+
+%\usepackage[backend=biber]{biblatex}
+%\addbibresource{masterrefs.bib}
+\usepackage{listings}
+%\usepackage{a4wide}
+\usepackage{color}
+\usepackage{amssymb}
+%\usepackage{cite} % [2,3,4] --> [2--4]
+\usepackage{shadow}
+\usepackage{braket}
+%\usepackage{tikz}
+%\usepackage{hyperref}
+%\usepackage[norsk]{babel}
+
+\newcommand{\eqspace}{\text{   }\text{   }\text{   }}
+\newcommand{\ra}{\rightarrow}
+\def \ssum{\sideset{}{}\sum}
+\def \ssumi{\sideset{}{}\sum_i}
+\def \ssumj{\sideset{}{}\sum_j}
+
+
+
+%opening
+\title{Neuron project - SSCP 2018} % Change this title
+\author{Jacob Schreiner, Kine Ødegård Hanssen, Miriam Bell, Christian Cazares}
+\date{}
+ 
+ % This is really just a draft... Should probably rewrite the entire thing...
+ 
+\begin{document}
+
+\maketitle
+
+\begin{abstract} % Just writing down SOMETHING so that I have at least started
+ A correlation has been shown to exist between several genetic variants affecting ion channels in neurons and instances of diseases such as familial migraine, epilepsy and schizophrenia \cite{fhm},\cite{epilepsy},\cite{gautes}. By a suitable change of parameters in the compartmental pyramidal layer 5 cell model (L5PC) \cite{l5pc_model}, altered neuron spiking due to two $SCN1A$ mutations was characterized separately. Affected and unaffected networks were subsequently simulated in order to acertain the effect of the mutation. Parameters found by a fit to the single neuron frequency-current (f-I) curve were used to encode the presence of mutated channels in the network setting. % This is pretty much rubbish 
+\end{abstract}
+
+\section*{Background}
+% On why this is important, bla bla bla.
+%Efforts to map genetic variants and their ties to increased risk of various conditions have proven valuable in identifying the origin of hereditary diseases. The work has %been 
+
+%occurrence
+
+% Efforts to CONNECT? Tror jeg leter etter et annet ord her...
+Efforts to connect the existence of genetic variants with the occurence of various medical conditions have proven valuable in identifying the origin of hereditary diseases. After the genetic origin of the disease is identified, further work is required to elucidate the underlying mechanisms of the disorder. Properties of affected and unaffected tissue and cells can be compared by experimental means, followed by suitable simulations.
+% Ok
+% Such diseases may be 
+% After candidate variants has been identified, 
+
+%Variants might for instance affect the conductivity of tissue 
+%After the concurrence between mutation and disease has been established, further work is required to elucidate the underlying mechanisms of the disorder. % Sikkert også ok
+%Such work may include numerical endeavors. % Too general? Go straight to the point?
+
+% Diseases such as familial migraine, epilepsy and schizophrenia have been shown to coincide with mutations affecting the ion channels and calcium concentration in neurons.  % [Ref], Gaute et. al. That paper is only on schizophrenia, should probably check/refer to the others as well. % Separere, kanskje? Snakke om en og en?
+% Schizophrenia is associated with numerous mutations, 
+% Several different mutations are associated with schizophrenia,
+
+Mutations in the gene $SCN1A$ has been associated with diseases such as familial migraine, epilepsy and schizophrenia. This work focuses on change in network spiking caused by the mutations Q1481K and L1649Q in $SCN1A$, both shown to be correlated with the occurrence of schizophrenia. % Is this a weak sentence
+
+
+
+% ... While a statistical survey of the symptoms and variants...
+% Et eller annet om at fenomenologiske/kliniske studier/pasientstudier kan si mer om symptomene?
+
+% The concurrence between mutation and disease itself does not 
+%Such work has been statistical in nature
+%In the initial phase of such an endeavor, the focus is on 
+% The mechanisms behind the disease will however require 
+
+
+
+\section*{Methods}
+\subsection*{The multicompartmental L5PC}
+The single neuron was simulated by use of the multicompartmental layer five pyramidal cell model (multicompartmental L5PC). This model was first introduced by Hay et. al. (2011) \cite{l5pc_model}, but this project used the implementation of M\"aki-Marttunen et. al. (2015)\cite{gautes} as available on modelMD \cite{L5PC_Tuomo_modelMD}. NEURON was used to generate the single neuron data.
+
+\subsection*{Genetic variants}
+%The effect of mutations Q1481K and L1649Q in the SCN1A gene was studied. The mutations were implemented by modifications in the value of the sodium gating variable in the multicompartmental L5PC model. % Check if this is correct. Changed gNaTa_tbar_NaTa_t
+The effect of mutations Q1481K and L1649Q in the $SCN1A$ gene was studied. The mutations were implemented by performing modifications of the sodium conductance and gating variables in the multicompartmental L5PC model for both the soma and the apical dendrite. % Do we have more than one apical dendrite? % Check whether we do. % Conductance? Sodium conductance?
+The altered parameters for the variants were taken from \cite{gautes}. % Mention what modifications we did.
+
+
+%\subsection*{The adaptive exponential integrate- and fire model}
+%For the network simulations, two different models were applied, the first one being the adaptive exponential integrate- and fire model, or AdEx for short.
+
+\subsection*{The Basic Integrate-and-Fire Model} % How detailed should this be? The report should be like a paper, I guess, so I shouldn't need to repeat stuff
+% The basic integrate-and-fire model was used to find an analytical expression for the spike frequency using a constant input current. Doing this for a number of different inp
+
+% The integrate-and-fire models for single neurons are widely used in neuroscience. % Ok sentence? Too naive?
+The integrate-and-fire models are frequently used to simulate the spiking behavior of neurons. % Ok sentence? Too naive?
+The neuron is described by a circuit with a resistor and a capacitor in parallel and a current passing through, resulting in a differential equation to be solved \cite{i-and-f}. % Does this hold for all, or just the leaky one?
+Integrate-and-fire models can be used to describe both single neurons and networks of neurons. This project will use the model of Tsodyks et. al. (2011) \cite{Tsodyks} to simulate a network of neurons. For a single neuron, this model reduces to the basic integrate-and-fire model. Therefore, the basic single neuron integrate-and-fire model can be used to estimate parameters for the Tsodyks model. % Er 'basic single neuron' smør på flesk?
+
+%The basic integrate-and-fire model of a single neuron will be used to inform a more advanced network model. % ...determine some of the parameters of a network model...
+
+For the case of the basic integrate-and-fire model, an analytical expression for the spike frequency can be found when a constant input current is applied. This is done in \cite{i-and-f} with the reset potential set to zero. If a general reset potential is allowed, the frequency can be expressed as
+
+\begin{equation}
+ f = \left[ t_r - \tau\ln\left(\frac{V_{thr}-RI_0}{V_{r}-RI_0}\right) \right]^{-1}
+ \label{eq:frequency}
+\end{equation}
+
+
+where $t_r$ and $\tau$ are the refractory period and time constant of the neuron, $V_{thr}$ and $V_{r}$ are the threshold- and reset potential, $R$ is the resistance and $I_0$ is the input current. Equation (\ref{eq:frequency}) can be compared to the NEURON data to estimate $\tau$, $V_{thr}$, $V_r$ and $R$ in the network model. % R too? That only scales the V's
+
+% was used to find an analytical expression for the spike frequency using a constant input current. Doing this for a number of different inp
+
+\subsection*{The Tsodyks model}
+%The other network model was developed by Tsodyks et. al. (2000).
+The simulations of networks of neurons were performed using the model by Tsodyks et. al. (2000) \cite{Tsodyks}, but with suitable parameters. Being a network model, part of the input current of a neuron is the output current from all presynaptic neurons. % Eller: mediated by a pre-synaptic neuron. ?
+The current from a presynaptic neuron depends on the absolute strength of the connection and a variable $y$ that evolves according to a set of differential equations.
+% A bit too simple, or just detailed enough?
+
+\section*{Results}
+\subsection*{The integrate-and-fire parameters}
+Table (\ref{table:integrate-and-fire_parameters}) show the best fit parameters to the integrate-and-fire model for different percentages of the two mutated channels. The mean absolute difference between the NEURON and the integrate-and-fire current-frequency curves was used as it yielded a better fit than the root mean square.
+
+\begin{table}
+ \centering
+ \caption{The parameters found by the best fit of the basic integrate-and-fire model to the NEURON data. A.D.M. is the mean of the absolute difference between the NEURON frequency-current graph and the integrate-and-fire one.}
+ \begin{tabular}{r|c|r|r|r|r|r|r} % Or something
+  Mut. & Unmut. ch. & $\tau$ & $V_{thr}$ & $V_{r}$ & $R$ & $t_r$ & A.D.M.\\
+  \hline
+  None & 100 \% & $\tau$ & $V_{thr}$ & $V_{r}$ & $R$ & $t_r$ & A.D.M\\ % Insert
+ \end{tabular}
+\label{table:integrate-and-fire_parameters}
+\end{table}
+
+
+\section*{Discussion}
+
+\section*{Conclusion}
+
+
+\begin{thebibliography}{9}
+\bibitem{fhm} 
+Kaate R. J. Vanmolkot, Elena Babini, Boukje de Vries, Anine H. Stam, Tobias Freilinger, Gisela M. Terwindt, Lisa Norris, Joost Haan, Rune R. Frants, Nabih M. Ramadan, Michel D. Ferrari, Michael Pusch, Arn M. J. M. van den Maagdenberg, Martin Dichgans.
+\textit{The Novel p.L1649Q Mutation in the $SCN1A$ Epilepsy Gene is Associated with Familial Hemiplegic Migraine: Genetic and Functional Studies}. 
+Human Mutation, 30. March 2007,
+https://doi.org/10.1002/humu.9486
+
+\bibitem{epilepsy} 
+Andrew Escayg, Alan L. Goldin.
+\textit{Sodium channel $SCN1A$ and epilepsy: mutations and mechanisms}. 
+Epilepsia. 2010 September ; 51(9): 1650–1658. doi:10.1111/j.1528-1167.2010.02640.x.
+
+\bibitem{gautes} 
+Tuomo M\"aki-Marttunen, Geir Halnes, Anna Devor, Aree Witoelar, Francesco Bettella, Srdjan Djurovic, Yunpeng Wang, Gaute T. Einevoll, Ole A. Andreassen, Anders M. Dale.
+\textit{Functional effects of schizophrenia-linked genetic variants on intrinsic single-neuron excitability: A modeling study}. 
+arXiv:1509.07258v1, 2015
+
+\bibitem{l5pc_model} 
+Etay Hay, Sean Hill, Felix Sch\"urmann, Henry Markram, Idan Segev.
+\textit{Models of Neocortical Layer 5b Pyramidal Cells Capturing a Wide Range of Dendritic and Perisomatic Active Properties}. 
+PLOS Computational Biology, July 2011, Volume 7, Issue 7
+
+
+\bibitem{L5PC_Tuomo_modelMD}
+ModelDB site of M\"aki-Marttunen et al. 2016 (reference \cite{gautes}):
+\textit{Schiz.-linked gene effects on intrinsic single-neuron excitability (Maki-Marttunen et al. 2016)}
+https://senselab.med.yale.edu/modeldb/showModel.cshtml?model=169457\#tabs-1
+
+%\bibitem{i-and-f}
+%Wulfram Gerstner, Werner Kistler.
+%\textit{Integrate-and-fire model}.
+%http://icwww.epfl.ch/~gerstner/SPNM/node26.html.
+%Also available in book format: \textit{Spiking Neuron Models. Single Neurons, } Cambridge University Press, 2002
+
+\bibitem{i-and-f}
+Wulfram Gerstner, Werner Kistler.
+\textit{Spiking Neuron Models. Single Neurons, Populations, Plasticity}.
+Cambridge University Press, 20002.
+Chapter 4.1 is available at \textit{http://icwww.epfl.ch/~gerstner/SPNM/node26.html}.
+
+
+
+\bibitem{Tsodyks}
+Misha Tsodyks, Asher Uziel, Henry Markram.
+\textit[{Synchrony Generation in Recurrent Networks with Frequency-Dependent Synapses}.
+The Journal of Neuroscience, 2000, Vol. 20 RC50
+
+
+\end{thebibliography}
+\end{document}
