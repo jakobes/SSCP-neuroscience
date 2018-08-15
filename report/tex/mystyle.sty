@@ -1,0 +1,112 @@
+\ProvidesPackage{tex/mystyle}
+
+\usepackage{ifluatex}
+\ifluatex
+    \usepackage{fontspec}
+    \usepackage{xunicode}     % rather than textcomp
+\else
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{textcomp}           % more fonts?
+\fi
+
+\usepackage{etex}               % allows for more packages
+\reserveinserts{28}
+
+% Custom commands
+\usepackage{amsopn}             % provides DeclareMathOperator
+\usepackage{tex/mymath}
+
+\usepackage{lmodern}            % fonts
+\usepackage[english]{babel}     % language support
+% \usepackage{mathrsfs}           % RFSF fonts in math
+
+% cross-references
+\usepackage{varioref}           % 
+\usepackage[hidelinks, unicode=true]{hyperref} % disables the boxes
+\usepackage{cleveref}
+
+% Formatting
+\usepackage[inner=3.5cm, outer=2.5cm, bottom=5cm]{geometry}
+\usepackage{parskip}            % white space between paragraphs
+\usepackage{wrapfig}            % Figures which text can flow around
+
+% Floats
+\usepackage{graphicx}
+\usepackage{floatrow}           % Customize floats
+% \usepackage{caption}              % Manipulate captions in floats
+% \usepackage{subcaption}           % Analogous to caption
+
+% Math
+\usepackage{amsmath}
+\usepackage{mathtools}          % cool math tools (show only refs)
+% \mathtoolsset{showonlyrefs}     % NB! Breaks referencing. But do I want this?
+\usepackage{upgreek}            % More greek letters
+\usepackage{amsfonts}           % More math symbols and fonts
+\usepackage{dsfont}             % "Set" fonts e.g. Reals
+\usepackage[makeroom]{cancel}   % Cross-out
+% \usepackage{autonum}      % Duplicate of showonlyrefs
+
+
+\usepackage{xcolor}
+\usepackage{ulem}               % Underlining
+
+\usepackage{csquotes}           % Quotation commands
+\usepackage[backend=biber]{biblatex}
+\addbibresource{references.bib}
+
+% Environments
+\usepackage{amsthm}             % Theorem setup
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{enumerate}
+% \usepackage{paralist}         % In-paragraph list
+% \usepackage{fullpage}         % Overrides geometry?
+% \usepackage{algorithmicx}
+\usepackage{booktabs}       % more tables
+
+% Tikz tuff?
+% \usepackage{calc}
+% \usepackage{eso-pic}        % Backround image
+% \usepackage{picture}
+% \usepackage{tikz}
+% \usepackage{xifthen}
+
+
+% For listing
+\floatsetup[listing]{style=Plaintop}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  language=python,       % the language of the code
+  basicstyle=\footnotesize\ttfamily, % the size of the fonts that are used for the code
+  numbers=left,           % where to put the line-numbers
+  %numberstyle=\tiny,  % the style that is used for the line-numbers
+  stepnumber=2,       % the step between two line-numbers. If it's 1, each line will be numbered
+  %numbersep=10pt,          % how far the line-numbers are from the code
+  extendedchars=true,
+  backgroundcolor=\color{white}, % choose the background color. You must add \usepackage{color}
+  %showspaces=false,          % show spaces adding particular underscores
+  showstringspaces=false,     % underline spaces within strings
+  %showtabs=false,        % show tabs within strings adding particular underscores
+  frame=single,              % adds a frame around the code
+  rulecolor=\color{black},   % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,              % sets default tabsize to 2 spaces
+  %captionpos=b,          % sets the caption-position to bottom
+  breaklines=true,        % sets automatic line breaking
+  breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+  %title=\lstname,        % show the filename of files included with \lstinputlisting; also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{dkgreen}\textit,    % comment style
+  stringstyle=\color{mauve},      % string literal style
+  %escapeinside={\%*}{*}}},    % if you want to add LaTeX within your code
+  %morekeywords={*,...},      % if you want to add more keywords to the set
+  xleftmargin=-30pt,
+  xrightmargin=-20pt,
+  framexleftmargin=29pt,
+  framexrightmargin=31pt,
+  framexbottommargin=4pt,
+}

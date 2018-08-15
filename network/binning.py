@@ -3,6 +3,7 @@
 import time
 
 from math import sqrt
+from itertools import takewhile
 
 import numpy as np
 import matplotlib as mpl
@@ -12,17 +13,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from collections import namedtuple
-
-
-try:
-    from numba import jit
-except ModuleNotFoundError:
-    print("Could not import numba. Using unity decorator")
-
-
-    def jit(**kwargs):
-        """Unity decorator."""
-        return lambda x: x 
 
 
 def grouper(mylist, interval):
@@ -55,6 +45,15 @@ def compute_frequency(spike_map, dt):
         array of shape (N,) with freqiencies in Hz
     """
     return spike_map.sum(1)/spike_map.shape[1]/dt*1000
+
+
+def rolling_window(a, window):
+    a = list(a)
+    sumlist = []
+    while len(a) > 0:
+        sumlist.append(len(list(takewhile(lambda x: x - a[0] <= window, a))))
+        a.pop(0)
+    return sumlist
 
 
 def tsodyks_solver(
@@ -97,9 +96,9 @@ def tsodyks_solver(
         syn_weight (float): Synaptic weight.
     """
     np.random.seed(seed)
+
     # Creeate connectivity matrix
     random_matrix = np.random.random((num_n, num_n))
-    # A = np.ones(shape=(num_n, num_n))*syn_weight
     A = np.ones(shape=(num_n, num_n))
     num_ex = int(num_n*(1 - ie_frac))
     A[:num_ex, :num_ex] = 1.8*syn_weight    # ee
@@ -107,6 +106,7 @@ def tsodyks_solver(
     A[num_ex:, :num_ex] = -7.2*syn_weight   # ie
     A[num_ex:, num_ex:] = 0                 # ii
 
+    # Define different parameters for excitatory and inhibitory
     _U = np.zeros(num_n)
     _U[:num_ex] = U
     _U[num_ex:] = 0.4
@@ -123,14 +123,11 @@ def tsodyks_solver(
     _tau1[:num_ex] = tau1
     _tau1[num_ex:] = 10
 
-    # Because numba is stupid
-    for i in range(A.shape[0]):
-        for j in range(A.shape[1]):
-            if random_matrix[i, j] >= syn_frac or i == j:
-                A[i, j] = 0
+    # Sparse connectivity matrix
+    A[random_matrix >= syn_frac] = 0
+    np.fill_diagonal(A, 0)
 
     # Initialise solution arrays
-    # V_sol = icv*np.random.random(num_n)
     V_sol = np.ones(num_n)*icv
     x_sol = np.ones_like(V_sol)
     y_sol = np.zeros_like(V_sol)
@@ -155,7 +152,8 @@ def tsodyks_solver(
         # Compute indices of active neurons (That is, not resting)
         refractory_idx = (t - spike_times >= _refractory_period)   # 3 ms refractory time
 
-        I_syn = A@y_sol     # Synaptic currents
+        # Synaptic currents
+        I_syn = A@y_sol
 
         # Transmembrane potential
         dv = (R*I_syn - V_sol)/tau
@@ -192,26 +190,34 @@ def tsodyks_solver(
 
         x_sol[ex_update] -= u_sol[ex_update]*x_sol[ex_update]
         x_sol[num_ex:] = 1 - y_sol[num_ex:] - z_sol[num_ex:]
-        if (x_sol > 1).any():
-            print(np.where(x_sol > 1)[0])
-            print(x_sol[np.where(x_sol > 1)[0]])
-            print()
-
         # u_sol[update_idx] += (_U*(1 - u_sol))[update_idx]
 
-        # Again, because numba is stupid
-        for j, bool_idx in enumerate(update_idx):
-            if bool_idx:
-                fire_list.append(SpikeTuple(T=i, id=j))
-                V_sol[j] = icv
-                spike_times[j] = t
+        V_sol[update_idx] = icv
+        spike_times[update_idx] = t
+
+        # Find indices of 
+        for j in np.where(update_idx)[0]:
+            fire_list.append(SpikeTuple(T=i, id=j))
+
         x_list[i] = x_sol
     return fire_list, np.asarray(x_list)
 
 
+
+import numpy as np
+
+def nonzero_runs(a):
+    # Create an array that is 1 where a is 0, and pad each end with an extra 0.
+    iszero = np.concatenate(([0], np.greater(a, 0).view(np.int8), [0]))
+    absdiff = np.abs(np.diff(iszero))
+    # Runs start and end where absdiff is 1.
+    ranges = np.where(absdiff == 1)[0].reshape(-1, 2)
+    return ranges
+
+
 def binning():
     DT = 0.5
-    T = 1100
+    T = 11000
     NUM_N = 500
     tick = time.clock()
     fire_list, x_map = tsodyks_solver(
@@ -250,17 +256,21 @@ def binning():
 
     ax = fig.add_subplot(311)
     ax.set_title("Average frequency: {:.2f}".format(len(fire_list)/(T/1000)/NUM_N))
-    ax.plot(np.linspace(0, T, len(bins)), bins)
+    ax.plot(np.linspace(0, T, len(bins)), list(map(lambda x: x/NUM_N, bins)))
 
     ax = fig.add_subplot(312)
     ax.plot(np.linspace(0, T, len(x_map)), x_map.sum(1)/NUM_N)
 
     ax = fig.add_subplot(313)
-    # new_x = np.linspace(0, T, len(x_map))
-    # new_f = np.interp(new_x, time_array*DT, id_vector)
-    # ax.plot(new_x, new_f, "bx", markersize=0.2, mew=0.2)
     ax.plot([0] + list(time_array*DT), [0] + list(id_vector), "x", markersize=0.2)
     fig.savefig("foo.png")
+
+    cumsum = np.asarray(rolling_window(time_array, 5/DT))
+    cumsum[cumsum < 20] = 0
+    bursts = nonzero_runs(cumsum)
+    print("Length of bursts: ", (bursts[:, -1] - bursts[:, 0])*DT)
+    print("Burst frequency: ", bursts.shape[0]/T*1000)
+
 
 if __name__ == "__main__":
     binning()

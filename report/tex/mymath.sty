@@ -1,0 +1,44 @@
+\ProvidesPackage{tex/mymath}
+
+% Differentiation
+\DeclareMathOperator*{\grad}{\nabla}
+\DeclareMathOperator*{\curl}{\nabla\times}
+\let\div\relax
+\DeclareMathOperator*{\div}{\grad\cdot}
+
+% Differentials
+\DeclareMathOperator{\md}{\mathrm{d}} %derivation d 
+\DeclareMathOperator{\dx}{\mathrm{d}x}
+\DeclareMathOperator{\dX}{\mathrm{d}X}
+\DeclareMathOperator{\ds}{\mathrm{d}s}
+\DeclareMathOperator{\dS}{\mathrm{d}S}
+\DeclareMathOperator{\dV}{\mathrm{d}V}
+\DeclareMathOperator{\dt}{\mathrm{d}t}
+\DeclareMathOperator{\dO}{\mathrm{d}\(\Omega\)}
+\DeclareMathOperator{\dg}{\mathrm{d}\(\Gamma\)}
+\DeclareMathOperator{\Dt}{\Delta t}
+
+% Integrals
+\newcommand\Int[2]{\int\limits_{#1}^{#2}} % Integral with limits
+\newcommand{\bdry}{\partial \Omega}
+
+% Linalg and functions
+\renewcommand{\vec}{\mathbf}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+\newcommand{\inv}[1]{#1^{-1}} %Inverse
+\newcommand{\abs}[1]{\vert #1 \vert} %absolute value
+
+% Fractions
+\newcommand{\der}[2]{\frac{\partial #1}{\partial #2}} %Shortcut for derivative
+\newcommand{\totder}[2]{\frac{\mathrm{d}#1}{\mathrm{d} #2}} % Total derivative
+
+% Spaces and sets
+\newcommand{\Real}{\operatorname{Re}} % Real part
+\newcommand{\Imag}{\operatorname{Im}} % Imaginary part
+
+% Mathcal
+\DeclareMathOperator{\oh}{\mathcal{O}}
+
+% Div
+\newcommand{\cn}{\textcolor{red}{[citation needed!]}}
