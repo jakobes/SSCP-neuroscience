@@ -50,7 +50,7 @@
 \maketitle
 
 \begin{abstract} % Just writing down SOMETHING so that I have at least started
- A correlation has been shown to exist between several genetic variants affecting ion channels in neurons and instances of diseases such as familial migraine, epilepsy and schizophrenia \cite{fhm},\cite{epilepsy}, \cite{gautes}. By a suitable change of parameters in the compartmental pyramidal layer 5 cell model (L5PC) \cite{l5pc_model}, altered neuron spiking due to two SCN1A mutations was characterized separately. Affected and unaffected networks were subsequently simulated in order to acertain the effect of the mutation. Parameters found by a fit to the single neuron frequency-current (f-I) curve were used to encode the presence of mutated channels in the network setting. % This is pretty much rubbish 
+ A correlation has been shown to exist between several genetic variants affecting ion channel properties in neurons and instances of diseases such as familial migraine, epilepsy and schizophrenia \cite{fhm},\cite{epilepsy},\cite{gautes}. By a suitable change of parameters in the compartmental pyramidal layer 5 cell model (L5PC) \cite{l5pc_model}, altered neuron spiking and calcium dynamics due to two $SCN1A$ mutations was characterized separately. Affected and unaffected networks were subsequently simulated in order to acertain the effect of the mutation. Parameters found by a fit to the single neuron frequency-current (f-I) curve were used to encode the presence of mutated channels in the network setting. % This should be cleaned up + Include more on the calcium dynamics
 \end{abstract}
 
 \section*{Background}
@@ -59,8 +59,7 @@
 
 %occurrence
 
-% Efforts to CONNECT? Tror jeg leter etter et annet ord her...
-Efforts to connect the existence of genetic variants with the occurence of various medical conditions have proven valuable in identifying the origin of hereditary diseases. After the genetic origin of the disease is identified, further work is required to elucidate the underlying mechanisms of the disorder. Properties of affected and unaffected tissue and cells can be compared by experimental means, followed by suitable simulations.
+Efforts to map the concurrence of genetic variants and medical conditions have proven valuable in identifying the origin of hereditary diseases. After the genetic origin of the disease is identified, further work is required to elucidate the underlying mechanisms of the disorder. Properties of affected and unaffected tissue and cells can be compared by experimental means, followed by suitable simulations.
 % Ok
 % Such diseases may be 
 % After candidate variants has been identified, 
@@ -73,7 +72,7 @@ Efforts to connect the existence of genetic variants with the occurence of vario
 % Schizophrenia is associated with numerous mutations, 
 % Several different mutations are associated with schizophrenia,
 
-Mutations in the gene $SCN1A$ has been associated with diseases such as familial migraine, epilepsy and schizophrenia. This work focuses on change in network spiking caused by the mutations Q1481K and L1649Q in $SCN1A$, both shown to be correlated with the occurrence of schizophrenia. % Is this a weak sentence
+Mutations in the gene $SCN1A$ has been associated with diseases such as familial migraine, epilepsy and schizophrenia. This paper focuses on change in network spiking caused by the mutations Q1481K and L1649Q in $SCN1A$, both shown to be correlated with the occurrence of schizophrenia. % Is this a weak sentence
 
 
 
@@ -93,34 +92,49 @@ The single neuron was simulated by use of the multicompartmental layer five pyra
 
 \subsection*{Genetic variants}
 %The effect of mutations Q1481K and L1649Q in the SCN1A gene was studied. The mutations were implemented by modifications in the value of the sodium gating variable in the multicompartmental L5PC model. % Check if this is correct. Changed gNaTa_tbar_NaTa_t
-The effect of mutations Q1481K and L1649Q in the SCN1A gene was studied. The mutations were implemented by performing modifications of the sodium conductance and gating variables in the multicompartmental L5PC model for both the soma and the apical dendrite. % Do we have more than one apical dendrite? % Check whether we do. % Conductance? Sodium conductance?
+The effect of mutations Q1481K and L1649Q in the $SCN1A$ gene was studied. The mutations were implemented by performing modifications of the sodium conductance and gating variables in the multicompartmental L5PC model for both the soma and the apical dendrite. % Do we have more than one apical dendrite? % Check whether we do. % Conductance? Sodium conductance?
 The altered parameters for the variants were taken from \cite{gautes}. % Mention what modifications we did.
 
 
 %\subsection*{The adaptive exponential integrate- and fire model}
 %For the network simulations, two different models were applied, the first one being the adaptive exponential integrate- and fire model, or AdEx for short.
 
-\subsection*{The Basic Integrate-and-Fire Model} % How detailed should this be? The report should be like a paper, I guess, so I shouldn't need to repeat stuff
+\subsection*{The Basic Integrate-and-Fire Model} % TRIM THIS SECTION!!!
+
+% How detailed should this be? The report should be like a paper, I guess, so I shouldn't need to repeat stuff
 % The basic integrate-and-fire model was used to find an analytical expression for the spike frequency using a constant input current. Doing this for a number of different inp
 
 % The integrate-and-fire models for single neurons are widely used in neuroscience. % Ok sentence? Too naive?
-The integrate-and-fire models are frequently used to simulate the spiking behavior of neurons. % Ok sentence? Too naive?
-The neuron is described by a circuit with a resistor and a capacitor in parallel and a current passing through, resulting in a differential equation to be solved \cite{i-and-f}. % Does this hold for all, or just the leaky one?
-Integrate-and-fire models can be used to describe both single neurons and networks of neurons. This project will use the model of Tsodyks et. al. (2011) \cite{Tsodyks} to simulate a network of neurons. For a single neuron, this model reduces to the basic integrate-and-fire model. Therefore, the basic single neuron integrate-and-fire model can be used to estimate parameters for the Tsodyks model. % Er 'basic single neuron' smør på flesk?
+%The integrate-and-fire models are frequently used to simulate the spiking behavior of neurons. % Ok sentence? Too naive?
+%The neuron is described by a circuit with a resistor and a capacitor in parallel and a current passing through, resulting in a differential equation to be solved \cite{i-and-f}. % Does this hold for all, or just the leaky one?
+%Integrate-and-fire models can be used to describe both single neurons and networks of neurons. This project will use the model of Tsodyks et. al. (2011) \cite{Tsodyks} to simulate a network of neurons. For a single neuron, this model reduces to the basic integrate-and-fire model. Therefore, the basic single neuron integrate-and-fire model can be used to estimate parameters for the Tsodyks model. % Er 'basic single neuron' smør på flesk?
 
 %The basic integrate-and-fire model of a single neuron will be used to inform a more advanced network model. % ...determine some of the parameters of a network model...
 
-For the case of the basic integrate-and-fire model, an analytical expression for the spike frequency can be found when a constant input current is applied. This is done in \cite{i-and-f} with the reset potential set to zero. If a general reset potential is allowed, the frequency can be expressed as
+%For the case of the basic integrate-and-fire model, an analytical expression for the spike frequency can be found when a constant input current is applied. This is done in \cite{i-and-f} with the reset potential set to zero. If a general reset potential is allowed, the frequency can be expressed as
+
+%\begin{equation}
+ %f = \left[ t_r - \tau\ln\left(\frac{V_{thr}-RI_0}{V_{r}-RI_0}\right) \right]^{-1}
+ %\label{eq:frequency}
+%\end{equation}
+
+
+%where $t_r$ and $\tau$ are the refractory period and time constant of the neuron, $V_{thr}$ and $V_{r}$ are the threshold- and reset potential, $R$ is the resistance and $I_0$ is the input current. Equation (\ref{eq:frequency}) can be compared to the NEURON data to estimate $\tau$, $V_{thr}$, $V_r$ and $R$ in the network model. % R too? That only scales the V's
+
+% was used to find an analytical expression for the spike frequency using a constant input current. Doing this for a number of different inp
+
+%%%
+% Integrate-and-fire models are popular models for simulating the spiking behavior of neurons. The membrane is described by a circuit with a resistor and a capacitor in parallel and a current passing through, resulting in a differential equation\cite{i-and-f}. When the potential reaches a threshold value, the spike has occured and the potential is set to some reset value. A refractory period, for which the cell is inactive, can also be encoded. The single neuron integrate-and-fire models can 
+
+%%% A shorter version
+The integrate-and-fire models are popular models for simulating the spiking behavior of neurons, modeling the membrane as a circuit and introducing properties such as the threshold- and reset potential and the refractory period\cite{i-and-f}. Since network models such as the Tsodyks model is based on the basic integrate-and-fire model\cite{Tsodyks}, parameters of the network model can be determined by fits of the single neuron integrate-and-fire model to current-frequency curves. This is because the differential equation becomes analytically tractable when a constant current is applied, vastly speeding up the fitting process. In short, 
 
 \begin{equation}
  f = \left[ t_r - \tau\ln\left(\frac{V_{thr}-RI_0}{V_{r}-RI_0}\right) \right]^{-1}
  \label{eq:frequency}
 \end{equation}
 
-
-where $t_r$ and $\tau$ are the refractory period and time constant of the neuron, $V_{thr}$ and $V_{r}$ are the threshold- and reset potential, $R$ is the resistance and $I_0$ is the input current. Equation (\ref{eq:frequency}) can be compared to the NEURON data to estimate $\tau$, $V_{thr}$ and $V_r$ in the network model. % R too? That only scales the V's
-
-% was used to find an analytical expression for the spike frequency using a constant input current. Doing this for a number of different inp
+will be fit to the current-frequency curve from NEURON, providing estimates of the refractory period $t_r$, the membrane time constant $\tau$ of the neuron, the resistance $R$ and the threshold- and reset potentials $V_{thr}$ and $V_{r}$. $I_0$ is the applied constant current.
 
 \subsection*{The Tsodyks model}
 %The other network model was developed by Tsodyks et. al. (2000).
@@ -129,20 +143,33 @@ The current from a presynaptic neuron depends on the absolute strength of the co
 % A bit too simple, or just detailed enough?
 
 \section*{Results}
+\subsection*{Calcium dynamics}
 \subsection*{The integrate-and-fire parameters}
-Table (\ref{table:integrate-and-fire_parameters}) show the best fit parameters to the integrate-and-fire model for different percentages of the two mutated channels. The mean absolute difference between the NEURON and the integrate-and-fire current-frequency curves was used as it yielded a better fit than the root mean square.
+Table (\ref{table:integrate-and-fire_parameters}) show the best fit parameters to the integrate-and-fire model for different percentages of the two mutated channels. The mean absolute difference between the NEURON and the integrate-and-fire current-frequency curves was used as it yielded a better fit than the root mean square. The refractory period was set to 5 ms to avoid overfitting.
 
 \begin{table}
  \centering
- \caption{The parameters found by the best fit of the basic integrate-and-fire model to the NEURON data. A.D.M. is the mean of the absolute difference between the NEURON frequency-current graph and the integrate-and-fire one.}
- \begin{tabular}{r|c|r|r|r|r|r|r} % Or something
-  Mut. & Unmut. ch. & $\tau$ & $V_{thr}$ & $V_{r}$ & $R$ & $t_r$ & A.D.M.\\
+ \caption{The parameters found by the best fit of the basic integrate-and-fire model to the NEURON data. Error is the mean of the absolute difference between the NEURON frequency-current graph and the integrate-and-fire one. $t_r=$5 ms.}
+ \begin{tabular}{r|c|r|r|r|r|r} 
+  Mut. & Unmut. ch. & $\tau$ & $V_{thr}$ & $V_{r}$ & $R$ & Error\\
   \hline
-  None & 100 \% & $\tau$ & $V_{thr}$ & $V_{r}$ & $R$ & $t_r$ & A.D.M\\ % Insert
+  Q1481K & 100 \% & 39.2 & 11.6 & -79.5 & 35.0 & 0.43\\
+  Q1481K &  95 \% & 37.3 & 10.2 & -84.7 & 31.7 & 0.40\\
+  Q1481K &  90 \% & 39.6 &  9.6 & -82.7 & 32.2 & 0.40\\
+  Q1481K &  85 \% & 39.9 &  8.6 & -81.3 & 29.7 & 0.38\\
+  Q1481K &  80 \% & 41.9 &  9.0 & -85.6 & 32.3 & 0.35\\
+  Q1481K &  75 \% & 42.6 &  8.0 & -81.7 & 29.7 & 0.29\\
+  \hline
+  L1649Q & 100 \% & 43.6 & 20.1 & -98.2 & 66.8 & 0.47\\
+  L1649Q &  95 \% & 46.9 & 21.2 & -99.8 & 70.5 & 0.41\\
+  L1649Q &  90 \% & 52.9 & 15.0 & -78.7 & 49.8 & 0.34\\
+  L1649Q &  85 \% & 60.3 & 20.8 & -84.6 & 69.2 & 0.36\\
+  L1649Q &  80 \% & 61.4 & 20.6 & -88.3 & 68.7 & 0.33\\
  \end{tabular}
 \label{table:integrate-and-fire_parameters}
 \end{table}
 
+\subsection*{The network model}
 
 \section*{Discussion}
 
@@ -193,7 +220,7 @@ Chapter 4.1 is available at \textit{http://icwww.epfl.ch/~gerstner/SPNM/node26.h
 
 \bibitem{Tsodyks}
 Misha Tsodyks, Asher Uziel, Henry Markram.
-\textit[{Synchrony Generation in Recurrent Networks with Frequency-Dependent Synapses}.
+\textit{Synchrony Generation in Recurrent Networks with Frequency-Dependent Synapses}.
 The Journal of Neuroscience, 2000, Vol. 20 RC50
 
 
