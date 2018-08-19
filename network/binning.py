@@ -242,8 +242,8 @@ def tsodyks_solver(
     return fire_list, np.asarray(x_list)
 
 
-def binning(tau, threshold, icv, refractory_period, R, name=None, syn_weight=5e-1):
-    DT = 0.5
+def binning(tau, threshold, icv, refractory_period, R, name=None, syn_weight=5e-1, seed=42):
+    DT = 0.05
     T = 11000
     NUM_N = 500
     tick = time.clock()
@@ -263,9 +263,9 @@ def binning(tau, threshold, icv, refractory_period, R, name=None, syn_weight=5e-
         tau_f=1000,              # 1000
         tau_rec=80,              # 800
         tau1=3,                  # 3
-        seed=42,
+        seed=seed,
         noise_scale=1,
-        ie_frac=0.2     # 0.4
+        ie_frac=0.2,     # 0.4
     )
     tock = time.clock()
     print("Time: ", tock - tick)
@@ -277,31 +277,54 @@ def binning(tau, threshold, icv, refractory_period, R, name=None, syn_weight=5e-
     bins = list(map(len, grouper(time_array, int(5/DT))))
 
     sns.set()
-    fig = plt.figure(figsize=(20, 20))
+    # fig = plt.figure(figsize=(20, 20))
+    # fig = plt.figure()
+    fig = plt.figure(figsize=(11,7))
 
-    ax = fig.add_subplot(211)
-    ax.set_title("Average frequency: {:.2f}".format(len(id_vector)/(T/1000)/NUM_N), fontsize=48)
-    ax.plot(np.linspace(0, T, len(bins)), list(map(lambda x: x/(NUM_N*5/DT), bins)), linewidth=2)
-    ax.tick_params(axis='both', which='major', labelsize=26)
-    ax.tick_params(axis='both', which='minor', labelsize=24)
+    # ax = fig.add_subplot(111)
+    # ax.set_title("Average frequency: {:.2f}".format(len(id_vector)/(T/1000)/NUM_N), fontsize=48)
+    # ax.plot(np.linspace(0, T, len(bins)), list(map(lambda x: x/(NUM_N), bins)), linewidth=2)
+    # ax.tick_params(axis='both', which='major', labelsize=26)
+    # ax.tick_params(axis='both', which='minor', labelsize=24)
 
-    ax = fig.add_subplot(212)
-    ax.plot([0] + list(time_array*DT), [0] + list(id_vector), "x", markersize=0.4, mew=0.7)
-    ax.tick_params(axis='both', which='major', labelsize=26)
-    ax.tick_params(axis='both', which='minor', labelsize=24)
+    x, y = [0] + list(time_array*DT), [0] + list(id_vector)
+    # np.savetxt("foo.txt", (x, y))
+    # ax = fig.add_subplot(111)
+    # ax.plot([0] + list(time_array*DT), [0] + list(id_vector), "x", markersize=0.6, mew=0.8)
+    # ax.tick_params(axis='both', which='major', labelsize=26)
+    # ax.tick_params(axis='both', which='minor', labelsize=24)
 
     cumulative_bursts = find_bursts(fire_list, 5/DT, 10)
-    x = list(map(lambda x: sum(x)/2*DT, cumulative_bursts.values()))
-    ax.plot(x, 505*np.ones_like(x), "ro", markersize=10, mew=1)
+    z = np.fromiter(map(lambda x: sum(x)/2*DT, cumulative_bursts.values()), "f8")
+    # import IPython
+    # IPython.embed()
+    # ax.plot(z, -5*np.ones_like(z), "ro", markersize=10, mew=1)
+    # fig.tight_layout()
+    # print(z)
+
+    ax = fig.add_subplot(111)
+    ax.plot(x, y, "x", markersize=0.6, mew=0.8)
+    ax.tick_params(axis='both', which='major', labelsize=28)
+    ax.tick_params(axis='both', which='minor', labelsize=26)
+
+    ax.set_xlabel("time [ms]", fontsize=28)
+    ax.set_ylabel("neuron id", fontsize=28)
+    ax.set_title("Nework activity", fontsize=28)
+
+    ax.plot(z, -5*np.ones_like(z), "ro", markersize=5, mew=1)
+    fig.tight_layout()
+    fig.savefig("network.png")
+
 
     if name is None:
         name = "foo"
-    fig.savefig("images/{}.pdf".format(name))
+    # fig.savefig("images/{}.pdf".format(name))
     fig.savefig("images/{}.png".format(name))
+    plt.close(fig)
 
     BurstTuple = namedtuple("BurstTuple", ["durations", "frequency"])
     return BurstTuple(
-        sum(map(lambda x: x[1] - x[0], cumulative_bursts.values()))/len(cumulative_bursts),
+        list(map(lambda x: (x[1] - x[0])*DT, cumulative_bursts.values())),
         len(cumulative_bursts)
     )
 
@@ -312,26 +335,38 @@ if __name__ == "__main__":
         ["tau", "threshold", "icv", "refractory_period", "R"]
     )
     spec_dict = {
-        100: ParameterTuple(tau=41.4, threshold=12.6, icv=-87.1, refractory_period=5, R=42),
-        95: ParameterTuple(tau=39.6, threshold=10.2, icv=-81, refractory_period=5, R=34),
-        90: ParameterTuple(tau=37.4, threshold=9.5, icv=-89.6, refractory_period=5, R=31.6),
-        85: ParameterTuple(tau=38.1, threshold=8.1, icv=-78.6, refractory_period=5, R=27),
-        80: ParameterTuple(tau=37.1, threshold=7.4, icv=-80.6, refractory_period=5, R=24.7),
-        75: ParameterTuple(tau=37.4, threshold=7.8, icv=-88.8, refractory_period=5, R=25.9),
+        "mut1_100": ParameterTuple(tau=43.6, threshold=20.1, icv=-98.2, refractory_period=5, R=66.8),
+        "mut1_95": ParameterTuple(tau=37.4, threshold=11.6, icv=-80.1, refractory_period=5, R=38.7),
+        "mut1_90": ParameterTuple(tau=48.9, threshold=14.6, icv=-81.7, refractory_period=5, R=48.8),
+        "mut1_85": ParameterTuple(tau=43.8, threshold=10.9, icv=-83.0, refractory_period=5, R=36.4),
+        # "mut1_80": ParameterTuple(tau=41.9, threshold=9.0, icv=-85.6, refractory_period=5, R=32.3),
+        # "mut1_75": ParameterTuple(tau=42.6, threshold=8.0, icv=-81.7, refractory_period=5, R=29.7),
+
+        "mut2_100": ParameterTuple(tau=43.6, threshold=20.1, icv=-98.2, refractory_period=5, R=66.8),
+        "mut2_95": ParameterTuple(tau=46.9, threshold=21.2, icv=-99.8, refractory_period=5, R=70.5),
+        "mut2_90": ParameterTuple(tau=52.9, threshold=15.0, icv=-78.7, refractory_period=5, R=49.8),
+        "mut2_85": ParameterTuple(tau=60.3, threshold=20.8, icv=-84.6, refractory_period=5, R=69.2),
+        "mut2_80": ParameterTuple(tau=61.4, threshold=20.6, icv=-88.3, refractory_period=5, R=68.7),
+        # "mut2_80": ParameterTuple(tau=61.4, threshold=20.6, icv=-88.3, refractory_period=5, R=68.7),
     }
 
-    mutant_dict = {}
-    for fraq, spec in spec_dict.items():
-        print("Computing fraq: ", fraq)
-        mutant_dict[fraq] = binning(
-            tau=spec.tau,
-            threshold=spec.threshold,
-            icv=spec.icv,
-            refractory_period=spec.refractory_period,
-            R=spec.R,
-            name=fraq,
-            syn_weight=10
-        )
+    for seed in np.random.randint(0, 100, 3):
+        mutant_dict = {}
+        for fraq, spec in spec_dict.items():
+            print("Computing fraq: ", fraq)
+            mutant_dict[fraq] = binning(
+                tau=spec.tau,
+                threshold=spec.threshold,
+                icv=spec.icv,
+                refractory_period=spec.refractory_period,
+                R=spec.R,
+                name=fraq,
+                syn_weight=10,
+                seed=seed
+            )
+            break
 
-    for k, v in mutant_dict.items():
-        print(k, v.frequency, v.durations)
+        print("seed: ", seed)
+        for k, v in mutant_dict.items():
+            print("{}: ({}, {})".format(k, v.frequency, v.durations))
+        break   # Seems seed does nothing
