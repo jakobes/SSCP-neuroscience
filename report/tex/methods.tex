@@ -1,0 +1,20 @@
+\section*{Methods - network model}
+\subsection*{The multicompartmental L5PC}
+The single neuron was simulated by use of the multicompartmental layer five pyramidal cell model (multicompartmental L5PC). This model was first introduced by Hay et. al. (2011) \cite{hay2011models}, but this project used the implementation of M\"aki-Marttunen et. al. (2015)\cite{maki2016functional}. NEURON was used to generate the single neuron data.
+
+\subsection*{Genetic variants}
+The effect of mutations Q1481K and L1649Q in the $SCN1A$ gene was studied. The mutations were implemented by performing modifications of the sodium conductance and gating variables in the multicompartmental L5PC model for both the soma and the apical dendrite. The altered parameters for the variants were taken from \cite{maki2016functional}.
+\subsection*{The Basic Integrate-and-Fire Model}
+
+The integrate-and-fire models are popular models for simulating the spiking behavior of neurons, modeling the membrane as a circuit and introducing properties such as the threshold- and reset potential and the refractory period\cite{i-and-f}. Since network models such as the Tsodyks model is based on the basic integrate-and-fire model\cite{tsodyks2000synchrony}, parameters of the network model can be determined by fits of the single neuron integrate-and-fire model to current-frequency curves. This is because the differential equation becomes analytically tractable when a constant current is applied, vastly speeding up the fitting process. In short, 
+
+\begin{equation}
+ f = \left[ t_r - \tau\ln\left(\frac{V_{thr}-RI_0}{V_{r}-RI_0}\right) \right]^{-1}
+ \label{eq:frequency}
+\end{equation}
+
+will be fit to the current-frequency curve from NEURON, providing estimates of the refractory period $t_r$, the membrane time constant $\tau$ of the neuron, the resistance $R$ and the threshold- and reset potentials $V_{thr}$ and $V_{r}$. $I_0$ is the applied constant current.
+
+\subsection*{The network model}
+The simulations of networks of neurons were performed using the model by Tsodyks et. al. (2000) \cite{tsodyks2000synchrony}, but with parameters suitable to the L5PCs with and without mutations. Being a network model, part of the input current of a neuron is the output current from presynaptic neurons.
+The current from a presynaptic neuron depends on the absolute strength of the connection and a variable $y$ that evolves according to a set of differential equations.

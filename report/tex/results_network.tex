@@ -1,0 +1,23 @@
+\section*{Results - network model}
+\subsection*{The integrate- and fire best fit}
+Table (\ref{table:integrate-and-fire_parameters}) show the best fit parameters to the integrate-and-fire model for different percentages of the two mutated channels. The mean absolute difference between the NEURON and the integrate-and-fire current-frequency curves was used as it yielded a better fit than the root mean square. The refractory period was set to 5 ms to avoid overfitting.
+
+\begin{table}
+ \centering
+ \caption{The parameters found by the best fit of the basic integrate-and-fire model to the NEURON data. Error is the mean of the absolute difference between the NEURON frequency-current graph and the integrate-and-fire one. $t_r=$5 ms.}
+ \begin{tabular}{r|c|r|r|r|r|r} 
+  Mut. & Unmut. ch. & $\tau$ & $V_{thr}$ & $V_{r}$ & $R$ & Error\\
+  \hline
+  Q1481K & 100 \% & 43.6 & 20.1 & -98.2 & 66.8 & 0.47\\
+  Q1481K &  95 \% & 36.4 & 11.6 & -80.1 & 38.7 & 0.36\\
+  Q1481K &  90 \% & 48.9 & 14.6 & -81.7 & 48.8 & 0.28\\
+  Q1481K &  85 \% & 43.8 & 10.9 & -83.0 & 36.4 & 0.22\\
+  \hline
+  L1649Q & 100 \% & 43.6 & 20.1 & -98.2 & 66.8 & 0.47\\
+  L1649Q &  95 \% & 46.9 & 21.2 & -99.8 & 70.5 & 0.41\\
+  L1649Q &  90 \% & 52.9 & 15.0 & -78.7 & 49.8 & 0.34\\
+  L1649Q &  85 \% & 60.3 & 20.8 & -84.6 & 69.2 & 0.36\\
+  L1649Q &  80 \% & 61.4 & 20.6 & -88.3 & 68.7 & 0.33\\
+ \end{tabular}
+\label{table:integrate-and-fire_parameters}
+\end{table}
