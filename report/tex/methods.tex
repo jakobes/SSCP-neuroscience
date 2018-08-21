@@ -9,7 +9,7 @@
 % TODO: I need to try out font size, real two inner/outer and smaller geometry
 % TODO: I have to cut equations if picutres are too large
 As epilepsy is a network phenomenon, we want to connect the neuron models into a network. To reduce
-computational costs, we will use the inegrate-and-fire model rather than the Hay model, as it is
+computational costs, we will use the integrate-and-fire model rather than the Hay model, as it is
 significantly less computationally demanding. It is a phenomenological model, i.e. it captures the
 behaviour of a neuron, rather than modelling the underlying physiology. The model can be formulated
 as
@@ -21,18 +21,19 @@ as
 
 % Todo: Can we go into this much detail?
 % This desperately need reformulation.
-where \(\tau_m\) is the characteristic time, \(V_{rest}\) the resing potential, \(R_{in}\) is the
+where \(\tau_m\) is the characteristic time, \(V_{rest}\) the resting potential, \(R_{in}\) is the
 synaptic resistance and \(I_stim\) is the input stimulus. The second condition states that at 
 \(t = t_r\), that is when \(v \geq V_{threshold}\) and the neuron is spiking, the potential is reset
 to \(V_{reset}\). Finally, the neuron has an absolute refractory period in which it cannot fire. In
-order to fit the integrate-and-fire model we used a random grid search to fit it to the f-I curve
+order to fit the integrate-and-fire model we used a grid search to fit it to the f-I curve
 from the more physiologically realistic Hay model.
 
 \subsection{The Network Model}
 Following Tsodyks et. al., we use the integrate-and-fire model as a basis for a network model. They
 extend \cref{eq:intfire} by two components. Firstly, they add a set of state variables to model the
-shape and magnitude of the signals the projections between neurons, as well as hte use of the
-synaptic resources available to each neuron. They are formulated as
+shape and magnitude of the signals between neurons, as well as the use of the
+synaptic resources available to each neuron. % Maybe we can skip the details or simplify greatly after this? Refer the reader to the Tsodyks paper, perhaps?
+They are formulated as
 
 \begin{align} \label{eq:state}
     \frac{dx}{dt} &= \frac{z}{\tau_{rec}} - Ux\delta(t - t_r) \\      % TODO: Look up the dirac delta
@@ -42,7 +43,7 @@ synaptic resources available to each neuron. They are formulated as
 
 where \(\tau_{rec}\) is the time scale for synaptic resource recovery, \(\tau_I\) is the
 characteristic time of inter neuron signals. \(\delta\) is Dirac's delta function, and \(U\) is the
-fraction of syhnaptic resources spent each time the neuron fires.
+fraction of synaptic resources spent each time the neuron fires.
 
 The other component added for the network model is the synaptic stimulus. The term \(I_b\) from
 \ref{eq:intfire} is separated into two parts. The first part is the background stimulus \(I_b\),
