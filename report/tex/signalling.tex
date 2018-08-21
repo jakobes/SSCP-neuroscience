@@ -34,27 +34,37 @@ simplicity. We use model two to find the GluR (AMPAR) levels modulating the calc
 the readouts from model one.
 
 The effect of mutations Q1481K and L1649Q in the SCN1A gene was studied. The mutations were
-implemented by performing modifications of the sodium conductance and gating variables in the
-multicompartmental L5PC model for both the soma and the apical dendrite. The altered parameters for
-the variants were taken from \cite{maki2016functional}.
+included by modifying the sodium conductance and gating variables in the multicompartmental L5PC
+model for both the soma and the apical dendrite. The altered parameters for the variants were taken
+from \cite{maki2016functional}.
 
 \section{Signalling Results}
-Neurons with mutated sodium channels depart from typical neuron dynamics in regard to voltage,
-calcium dynamics and GluR levels. For the two SCNA1 mutations of interest, we see that
-mutation 1 has a substantial jump in dendritic membrane voltage at 10\% mutation, while mutation 2
-shows a jump at 15\% mutation, see \cref{fig:volt}. We will focus on mutation one, because a lower
-fraction of mutated sodium channels can have a significant effect on neuronal dynamics.
+% Neurons with mutated sodium channels depart from typical neuron dynamics in regard to voltage,
+% calcium dynamics and GluR levels.
+Both mutations show substantial jump in dendritic membrane voltage, as seen in \cref{fig:volt}. We
+will focus on mutation one, because lower fractions of mutated sodium channels can have a
+significant effect on neuronal dynamics. Mutation one exhibit ultrasensitivity towards increasing
+fraction of mutated channels. This manifests itself as a switch-like behaviour, as seen in
+\cref{fig:ultra}. Therefore, once a neuron hits this threshold, calcium levels will increase
+significantly. There is a similar effect in GluR dynamics, as seen in \cref{fig:GluR}.
 
-Looking at the maximum calcium concentration at the dendrite, we can clearly see that mutation one
-exhibits ultrasensitivity towards increasing channel percentages. This switch-like behaviour occurs
-around 7.5\% mutation, see \cref{fig:ultra}. Therefore, once a neuron hits this threshold it will
-experience a significant increase in calcium levels. There is a similar trend in GluR dynamics, see
-\cref{fig:GluR}. We consider the temporal dynamics of single phosphorylated GluR, and see that there
-is a similar jump between 5\% and 10\% mutation.  Initially GluR rises to a basal concentration,
-then at a critical time point calcium dynamics begin to influence GluR. We see that the increase in
-10-20\% mutation leads to about twice the increase in GluR compared to the control and 5\% mutation. 
+% For the two SCNA1 mutations of interest, we see that mutation 1 has a substantial jump in dendritic
+% membrane voltage at 10\% mutation, while mutation 2 shows a jump at 15\% mutation, see
+% \cref{fig:volt}. We will focus on mutation one, because a lower fraction of mutated sodium channels
+% can have a significant effect on neuronal dynamics.
+
+% Looking at the maximum calcium concentration at the dendrite, we can clearly see that mutation one
+% exhibits ultrasensitivity towards increasing channel percentages. This switch-like behaviour occurs
+% around 7.5\% mutation, see \cref{fig:ultra}. Therefore, once a neuron hits this threshold it will
+% experience a significant increase in calcium levels. There is a similar trend in GluR dynamics, see
+% \cref{fig:GluR}. We consider the temporal dynamics of single phosphorylated GluR, and see that there
+% is a similar jump between 5\% and 10\% mutation.  Initially GluR rises to a basal concentration,
+% then at a critical time point calcium dynamics begin to influence GluR. We see that the increase in
+% 10-20\% mutation leads to about twice the increase in GluR compared to the control and 5\% mutation. 
 
 \section{Limitations in our signalling approach}
+
+% TODO: Reduce this to two lines!!!!!!!
 
 %%% Future work
 Future work should take into consideration the morphology of the modelled neurons, as their terminal
@@ -72,13 +82,14 @@ voltage dynamics of our simulated mutant neurons in a way that would make their 
 neurons measurable. For instance, stimulating at the dendrite of a mutant 1 (Q1489K) neuron could
 reveal a greater voltage at the terminals, which may determine terminal output of vesicle release.
 
-\begin{figure}[!!h]
-    \centering
-    \includegraphics[width=\textwidth]{images/schematic.png}
-    \caption{\textbf{Model Design} We combine two signalling models to investigate the impact of
-    sodium channel mutations on calcium and AMPAR (GluR) dynamics.}
-    \label{schematic}
-\end{figure}
+% TODO: Make this into subfigures.
+% \begin{figure}[!!h]
+%     \centering
+%     \includegraphics[width=\textwidth]{images/schematic.png}
+%     \caption{\textbf{Model Design} We combine two signalling models to investigate the impact of
+%     sodium channel mutations on calcium and AMPAR (GluR) dynamics.}
+%     \label{schematic}
+% \end{figure}
 
 \begin{figure}[!!h]
     \centering

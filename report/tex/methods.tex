@@ -1,13 +1,18 @@
 \section{Network Models}
 
 % One sentence summary of signalling part.
-Using the models from Hay and Jedrzejewska-Szmek we found that increased firing rates as the
-fraction of mutated sodium channels increased for mutation one and the opposite effect for mutation
-two. The next step is to investigate whether this relationship holds when we extend our model to
-account for a network of excitatory and inhibitory neurons. To reduce computational costs, we will
-use the inegrate-and-fire model rather than the Hay model, as it is significantly less
-computationally demanding. It is a phenomenological model, i.e. it captures the behaviour of a
-neuron, rather than modelling the underlying physiology. The model can be formulated as
+% Using the models from Hay and Jedrzejewska-Szmek we found that increased firing rates as the
+% fraction of mutated sodium channels increased for mutation one and the opposite effect for mutation
+% two.  The next step is to investigate whether this relationship holds when we extend our model to
+% account for a network of excitatory and inhibitory neurons.
+
+% TODO: I need to try out font size, real two inner/outer and smaller geometry
+% TODO: I have to cut equations if picutres are too large
+As epilepsy is a network phenomenon, we want to connect the neuron models into a network. To reduce
+computational costs, we will use the inegrate-and-fire model rather than the Hay model, as it is
+significantly less computationally demanding. It is a phenomenological model, i.e. it captures the
+behaviour of a neuron, rather than modelling the underlying physiology. The model can be formulated
+as
 
 \begin{align} \label{eq:intfire}
     \tau_m \frac{fV}{dt} &= V_{rest} - V + R_{in}I_{stim} \\
