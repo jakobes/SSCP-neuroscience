@@ -1,20 +1,88 @@
-\section*{Methods - network model}
-\subsection*{The multicompartmental L5PC}
-The single neuron was simulated by use of the multicompartmental layer five pyramidal cell model (multicompartmental L5PC). This model was first introduced by Hay et. al. (2011) \cite{hay2011models}, but this project used the implementation of M\"aki-Marttunen et. al. (2015)\cite{maki2016functional}. NEURON was used to generate the single neuron data.
+\section{Network Models}
 
-\subsection*{Genetic variants}
-The effect of mutations Q1481K and L1649Q in the $SCN1A$ gene was studied. The mutations were implemented by performing modifications of the sodium conductance and gating variables in the multicompartmental L5PC model for both the soma and the apical dendrite. The altered parameters for the variants were taken from \cite{maki2016functional}.
-\subsection*{The Basic Integrate-and-Fire Model}
+% One sentence summary of signalling part.
+Using the models from Hay and Jedrzejewska-Szmek we found that increased firing rates as the
+fraction of mutated sodium channels increased for mutation one and the opposite effect for mutation
+two. The next step is to investigate whether this relationship holds when we extend our model to
+account for a network of excitatory and inhibitory neurons. To reduce computational costs, we will
+use the inegrate-and-fire model rather than the Hay model, as it is significantly less
+computationally demanding. It is a phenomenological model, i.e. it captures the behaviour of a
+neuron, rather than modelling the underlying physiology. The model can be formulated as
 
-The integrate-and-fire models are popular models for simulating the spiking behavior of neurons, modeling the membrane as a circuit and introducing properties such as the threshold- and reset potential and the refractory period\cite{i-and-f}. Since network models such as the Tsodyks model is based on the basic integrate-and-fire model\cite{tsodyks2000synchrony}, parameters of the network model can be determined by fits of the single neuron integrate-and-fire model to current-frequency curves. This is because the differential equation becomes analytically tractable when a constant current is applied, vastly speeding up the fitting process. In short, 
+\begin{align} \label{eq:intfire}
+    \tau_m \frac{fV}{dt} &= V_{rest} - V + R_{in}I_{stim} \\
+    V(t_r) &= V_{reset},
+\end{align}
 
-\begin{equation}
- f = \left[ t_r - \tau\ln\left(\frac{V_{thr}-RI_0}{V_{r}-RI_0}\right) \right]^{-1}
- \label{eq:frequency}
-\end{equation}
+% Todo: Can we go into this much detail?
+% This desperately need reformulation.
+where \(\tau_m\) is the characteristic time, \(V_{rest}\) the resing potential, \(R_{in}\) is the
+synaptic resistance and \(I_stim\) is the input stimulus. The second condition states that at 
+\(t = t_r\), that is when \(v \geq V_{threshold}\) and the neuron is spiking, the potential is reset
+to \(V_{reset}\). Finally, the neuron has an absolute refractory period in which it cannot fire. In
+order to fit the integrate-and-fire model we used a random grid search to fit it to the f-I curve
+from the more physiologically realistic Hay model.
 
-will be fit to the current-frequency curve from NEURON, providing estimates of the refractory period $t_r$, the membrane time constant $\tau$ of the neuron, the resistance $R$ and the threshold- and reset potentials $V_{thr}$ and $V_{r}$. $I_0$ is the applied constant current.
+\subsection{The Network Model}
+Following Tsodyks et. al., we use the integrate-and-fire model as a basis for a network model. They
+extend \cref{eq:intfire} by two components. Firstly, they add a set of state variables to model the
+shape and magnitude of the signals the projections between neurons, as well as hte use of the
+synaptic resources available to each neuron. They are formulated as
 
-\subsection*{The network model}
-The simulations of networks of neurons were performed using the model by Tsodyks et. al. (2000) \cite{tsodyks2000synchrony}, but with parameters suitable to the L5PCs with and without mutations. Being a network model, part of the input current of a neuron is the output current from presynaptic neurons.
-The current from a presynaptic neuron depends on the absolute strength of the connection and a variable $y$ that evolves according to a set of differential equations.
+\begin{align} \label{eq:state}
+    \frac{dx}{dt} &= \frac{z}{\tau_{rec}} - Ux\delta(t - t_r) \\      % TODO: Look up the dirac delta
+    \frac{dy}{dt} &= -\frac{y}{\tau_I} + Ux\delta(t - t_r) \\
+    \frac{dz}{dt} &= \frac{y}{\tau_I} - \frac{z}{\tau_{rec}},
+\end{align}
+
+where \(\tau_{rec}\) is the time scale for synaptic resource recovery, \(\tau_I\) is the
+characteristic time of inter neuron signals. \(\delta\) is Dirac's delta function, and \(U\) is the
+fraction of syhnaptic resources spent each time the neuron fires.
+
+The other component added for the network model is the synaptic stimulus. The term \(I_b\) from
+\ref{eq:intfire} is separated into two parts. The first part is the background stimulus \(I_b\),
+which ensures there always is some activity in the network. It is modelled as
+\(\mathcal{N}(0, \sqrt{\Delta t}\), following the Euler-Maruyama method for SDEs. The other part is
+\(I_syn = \sum_{j}A_{ij}y_i\), where \(y\) is from \cref{eq:state}. The connectivity matrix A is
+sparse and governs where neurons send projections. The sign of the coefficients in A governs whether
+a neuron is excitatory or inhibitory. A positive sign means it is excitatory, a negative sign means
+it is inhibitory. Consequently, \(A\) account for four kinds of interactions: Excitatory-excitatory,
+excitatory-inhibitory, inhibitory-excitatory and inhibitory-inhibitory.
+
+Our network consists of 500 neurons has a four to one excitatory to inhibitory ratio, and each
+neuron send on average projections to ten percent of the other neurons. We used the same parameters
+for excitatory and inhibitory neurons for all the parameters found in the integrate and fire model
+as they share the same sodium channels. The other parameters introduced by the network model were
+chosen ad-hoc to ensure tht the network had a base burst frequency while allowing the neurons to
+recover their synaptic resources.
+
+% \subsection{The multicompartmental L5PC}        % TODO: Duplication with signalling 
+% FIXME: I think this part is reduntant
+% The single neuron was simulated by use of the multi compartmental layer five pyramidal cell model
+% (multicompartmental L5PC). This model was first introduced by Hay et. al. (2011)
+% \cite{hay2011models}, but this project used the implementation of M\"aki-Marttunen et. al. (2015)
+% \cite{maki2016functional}. NEURON was used to generate the single neuron data.  % TODO: Cite Neuron
+
+% \subsection{The Basic Integrate-and-Fire Model}
+% The integrate-and-fire models are popular models for simulating the spiking behaviour of neurons,
+% modelling the membrane as a circuit and introducing properties such as the threshold and reset
+% potential and the refractory period \cite{i-and-f}. Since network models such as the Tsodyks model
+% is based on the basic integrate-and-fire model \cite{tsodyks2000synchrony}, parameters of the
+% network model can be determined by fits of the single neuron integrate-and-fire model to
+% current-frequency curves. This is because the differential equation becomes analytically tractable
+% when a constant current is applied, vastly speeding up the fitting process. In short,
+
+% where \(t_r\) is the time when the \(V \geq V_{threshold}\) and the neuron is spiking. Considering a
+% signle neuron, we can determine the firing rate analytically
+
+% TODO: Is this really that important?
+% \begin{equation} \label{eq:frequency}
+%     f = \left[t_r - \tau\ln\left(\frac{V_{thr} - RI_0}{V_{r} - RI_0}\right) \right]^{-1}
+% \end{equation}
+
+% TODO: Describe this equation
+
+
+% will be fit to the current-frequency curve from NEURON, providing estimates of the refractory period
+% $t_r$, the membrane time constant \(\tau\) of the neuron, the resistance \(R\) and the threshold
+% and reset potentials \(V_{thr}\) and \(V_{r}\). \(I_0\) is the applied constant current.

@@ -2,3 +2,8 @@
 *.png
 *.sav
 x86_64/
+
+*.bbl
+*.pdf
+*.run.xml
+*.synctex.gz
